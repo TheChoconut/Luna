@@ -144,9 +144,9 @@ def resume_game():
 				f.write("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + lastrun + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault")
 
 			if (DEBUG.lower() == "false"):
-				subprocess.Popen("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + lastrun + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault > /storage/moonlight/debug.txt", shell=True)
+				subprocess.Popen("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + lastrun + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault > /storage/moonlight/debug.txt", shell=True)
 			elif (DEBUG.lower() == "true"):
-				subprocess.Popen("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + lastrun + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault -debug > /storage/moonlight/debug.txt", shell=True)
+				subprocess.Popen("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + lastrun + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault -debug > /storage/moonlight/debug.txt", shell=True)
 
 
 
