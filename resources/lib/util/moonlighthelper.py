@@ -164,7 +164,7 @@ class MoonlightHelper:
 		f.write(PACKETSIZE + "\n")
    		f.write(DEBUG + "\n")
 		f.write("\n")
-		f.write("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + game_id + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault")
+		f.write("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + game_id + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault")
 
 	with open("/storage/moonlight/lastrun.txt","w") as f:
    		f.write(game_id)
