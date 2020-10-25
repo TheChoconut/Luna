@@ -128,21 +128,20 @@ class MoonlightHelper:
 
     def launch_game(self, game_id):
 	import time
+	import xbmcgui
 
 	os.setuid(os.getuid())
-	subprocess.Popen('echo 0 > /sys/class/video/disable_video', shell=True)
-	subprocess.Popen('systemctl stop kodi', shell=True)
+	with open("/storage/moonlight/launch_params.txt",'w') as f:
+		f.write("0")
 	time.sleep(5)
 	if os.path.isfile("/storage/moonlight/zerotier.conf"):
     		# read file
 		with open("/storage/moonlight/zerotier.conf") as content_file:
     			content = content_file.read()
 			if (content == "enabled"):
-				p = subprocess.Popen("/opt/bin/zerotier-one -d", shell=True)
+				p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False)
 
         self.config_helper.configure()
-
-	subprocess.Popen('/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh &', shell=True)
 
 	ADDRESS = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 3).strip())
 	WIDTH = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 4).strip())
@@ -170,9 +169,15 @@ class MoonlightHelper:
    		f.write(game_id)
 
 	if (DEBUG.lower() == "false"):
-		subprocess.Popen("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + game_id + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault > /storage/moonlight/debug.txt", shell=True)
+		subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", game_id, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
+
 	elif (DEBUG.lower() == "true"):
-		subprocess.Popen("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + game_id + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault -debug > /storage/moonlight/debug.txt", shell=True)
+		subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", game_id, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault", "-debug"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
+
+	subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
+	subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)
+
+	#xbmcgui.Dialog().ok('', 'Stream statistics go here!')
 
     def list_games(self):
         return RequiredFeature('nvhttp').request().get_app_list()

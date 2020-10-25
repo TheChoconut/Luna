@@ -109,17 +109,15 @@ def resume_game():
 		lastrun = content_file.read()
     		confirmed = xbmcgui.Dialog().yesno('', 'Resume playing game ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
 		if confirmed:
-			subprocess.Popen('echo 0 > /sys/class/video/disable_video', shell=True)
-			subprocess.Popen('systemctl stop kodi', shell=True)
+			with open("/storage/moonlight/launch_params.txt",'w') as f:
+				f.write("0")
 			time.sleep(5)
 			if os.path.isfile("/storage/moonlight/zerotier.conf"):
     				# read file
 				with open("/storage/moonlight/zerotier.conf") as content_file:
     					content = content_file.read()
 					if (content == "enabled"):
-						p = subprocess.Popen("/opt/bin/zerotier-one -d", shell=True)
-
-			subprocess.Popen('/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh &', shell=True)
+						p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False)
 
 			ADDRESS = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 3).strip())
 			WIDTH = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 4).strip())
@@ -144,10 +142,12 @@ def resume_game():
 				f.write("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + lastrun + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault")
 
 			if (DEBUG.lower() == "false"):
-				subprocess.Popen("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + lastrun + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault > /storage/moonlight/debug.txt", shell=True)
+				sp = subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", lastrun, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
 			elif (DEBUG.lower() == "true"):
-				subprocess.Popen("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + lastrun + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault -debug > /storage/moonlight/debug.txt", shell=True)
+				sp = subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", lastrun, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault", "-debug"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
 
+			subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
+			subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)
 
 
     else:
@@ -174,12 +174,18 @@ def zerotier_connect():
 	if (content == "disabled"):
 		confirmed = xbmcgui.Dialog().yesno('', 'Enable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
 		if confirmed:
-			p = subprocess.Popen("echo -n enabled > /storage/moonlight/zerotier.conf", shell=True)
+			#p = subprocess.Popen(["echo -n enabled > /storage/moonlight/zerotier.conf"], shell=True)
+			f = open("/storage/moonlight/zerotier.conf", "w")
+			f.write("enabled")
+			f.close()
 
 	elif (content == "enabled"):
 		confirmed = xbmcgui.Dialog().yesno('', 'Disable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
 		if confirmed:
-			p = subprocess.Popen("echo -n disabled > /storage/moonlight/zerotier.conf", shell=True)
+			#p = subprocess.Popen(["echo -n disabled > /storage/moonlight/zerotier.conf"], shell=True)
+			f = open("/storage/moonlight/zerotier.conf", "w")
+			f.write("disabled")
+			f.close()
 
 
 @plugin.route('/quit')
@@ -192,7 +198,7 @@ def quit_game():
     		lastrun = content_file.read()
 		confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit running game, ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
 		if confirmed:
-			subprocess.Popen("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight quit", shell=True)
+			subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
     			os.remove("/storage/moonlight/lastrun.txt") 
     			import xbmcgui
     			xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
@@ -302,7 +308,7 @@ def launch_game(game_id):
 		if (content != game_id):
     			confirmed = xbmcgui.Dialog().yesno('', 'Quit running game ' + content + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
 			if confirmed:
-    				subprocess.Popen("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight quit", shell=True)
+				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
     				os.remove("/storage/moonlight/lastrun.txt") 
 				time.sleep(5);
 				core = RequiredFeature('core').request()
