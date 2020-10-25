@@ -16,9 +16,9 @@ while [ true ]; do
 	    echo 'Moonlight is running'
 	    if [ $count = 0 ]; then
 		for i in $(lsusb | awk '{ print $6 }'); do
-			if [ $(lsusb -v -d $i 2>&1 | grep 'Mouse') ]; then
-				mouse=$(lsusb -d "$i" | awk '{ print $4}' | sed 's/.$//')
-				python /storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/reset_usb.py -d $mouse
+			if [ $(lsusb -v -d $i | grep InterfaceClass | awk 'END {print $(NF-2), $(NF-1), $NF}') == "Human Interface Device" ]; then
+				hid=$(lsusb -d "$i" | awk '{ print $4}' | sed 's/.$//')
+				python /storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/reset_usb.py -d $hid
 			fi
 		done
 		count=1
