@@ -4,6 +4,7 @@ import subprocess
 import threading
 import pwd, os
 import linecache
+import signal
 
 from xbmcswift2 import xbmc, xbmcaddon
 
@@ -134,12 +135,13 @@ class MoonlightHelper:
 	with open("/storage/moonlight/launch_params.txt",'w') as f:
 		f.write("0")
 	time.sleep(5)
+	p = None
 	if os.path.isfile("/storage/moonlight/zerotier.conf"):
     		# read file
 		with open("/storage/moonlight/zerotier.conf") as content_file:
     			content = content_file.read()
 			if (content == "enabled"):
-				p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False)
+				p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
 
         self.config_helper.configure()
 
@@ -176,6 +178,11 @@ class MoonlightHelper:
 
 	subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
 	subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)
+	
+	if not (p is None):
+		#xbmcgui.Dialog().ok('', 'ZeroTier connection closed!')
+		os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+		p.wait()
 
 	#xbmcgui.Dialog().ok('', 'Stream statistics go here!')
 

@@ -3,6 +3,7 @@ import os
 import threading
 import subprocess
 import linecache
+import signal
 
 from resources.lib.di.requiredfeature import RequiredFeature
 
@@ -109,6 +110,7 @@ def resume_game():
 		lastrun = content_file.read()
     		confirmed = xbmcgui.Dialog().yesno('', 'Resume playing game ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
 		if confirmed:
+			p = None
 			with open("/storage/moonlight/launch_params.txt",'w') as f:
 				f.write("0")
 			time.sleep(5)
@@ -117,7 +119,7 @@ def resume_game():
 				with open("/storage/moonlight/zerotier.conf") as content_file:
     					content = content_file.read()
 					if (content == "enabled"):
-						p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False)
+						p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
 
 			ADDRESS = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 3).strip())
 			WIDTH = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 4).strip())
@@ -148,7 +150,13 @@ def resume_game():
 
 			subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
 			subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)
-
+			
+			if not (p is None):
+				#xbmcgui.Dialog().ok('', 'ZeroTier connection closed!')
+				os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+				p.wait()
+			
+			#xbmcgui.Dialog().ok('', 'Stream statistics go here!')
 
     else:
     	xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
@@ -174,7 +182,6 @@ def zerotier_connect():
 	if (content == "disabled"):
 		confirmed = xbmcgui.Dialog().yesno('', 'Enable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
 		if confirmed:
-			#p = subprocess.Popen(["echo -n enabled > /storage/moonlight/zerotier.conf"], shell=True)
 			f = open("/storage/moonlight/zerotier.conf", "w")
 			f.write("enabled")
 			f.close()
@@ -182,7 +189,6 @@ def zerotier_connect():
 	elif (content == "enabled"):
 		confirmed = xbmcgui.Dialog().yesno('', 'Disable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
 		if confirmed:
-			#p = subprocess.Popen(["echo -n disabled > /storage/moonlight/zerotier.conf"], shell=True)
 			f = open("/storage/moonlight/zerotier.conf", "w")
 			f.write("disabled")
 			f.close()
