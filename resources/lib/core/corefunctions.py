@@ -11,6 +11,7 @@ STRINGS = {
     'name':                30000,
     'addon_settings':      30100,
     'full_refresh':        30101,
+    'quit_game':           30102,
     'choose_ctrl_type':    30200,
     'enter_filename':      30201,
     'starting_mapping':    30202,
@@ -50,8 +51,4 @@ class Core:
 
     def get_active_skin(self):
         userdata_folder = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(self.plugin.storage_path))))
-        guisettings_file = os.path.join(userdata_folder, 'guisettings.xml')
-        xml_root = ElementTree(file=guisettings_file).getroot()
-        active_skin = xml_root.find('lookandfeel').find('skin').text
-        return active_skin
 

@@ -44,6 +44,7 @@
     <!-- Context Menu -->
     <string id="30100">Addon Settings</string>
     <string id="30101">Full Refresh</string>
+    <string id="30102">Quit Game</string>
     <!-- Dialogs -->
     <string id="30200">Choose Controller Type</string>
     <string id="30201">Enter Filename for Controller Map</string>

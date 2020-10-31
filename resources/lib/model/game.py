@@ -129,7 +129,6 @@ class Game:
         if hasattr(self, 'selected_poster'):
             if self.selected_poster == '':
                 self.selected_poster = self.get_poster(0, '')
-
             return self.selected_poster
         else:
             self.selected_poster = self.get_poster(0, '')

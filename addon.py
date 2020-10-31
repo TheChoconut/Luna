@@ -108,58 +108,88 @@ def resume_game():
     	# read file
 	with open("/storage/moonlight/lastrun.txt") as content_file:
 		lastrun = content_file.read()
-    		confirmed = xbmcgui.Dialog().yesno('', 'Resume playing game ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+    		confirmed = xbmcgui.Dialog().yesno('', 'Resume playing ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
 		if confirmed:
-			p = None
-			with open("/storage/moonlight/launch_params.txt",'w') as f:
-				f.write("0")
-			time.sleep(5)
-			if os.path.isfile("/storage/moonlight/zerotier.conf"):
-    				# read file
-				with open("/storage/moonlight/zerotier.conf") as content_file:
-    					content = content_file.read()
-					if (content == "enabled"):
-						p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
-
-			ADDRESS = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 3).strip())
-			WIDTH = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 4).strip())
-			HEIGHT = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 5).strip())
-			FPS = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 6).strip())
-			BITRATE = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 7).strip())
-			PACKETSIZE = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 8).strip())
-			SOPS = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 9).strip())
-			REMOTE = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 10).strip())
-			LOCALAUDIO = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 11).strip())
-			DEBUG = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 12).strip())
-
-			with open("/storage/moonlight/launch_params.txt",'w') as f:
-   				f.write(ADDRESS + "\n")
-   				f.write(WIDTH + "\n")
-   				f.write(HEIGHT + "\n")
-   				f.write(FPS + "\n")
-   				f.write(BITRATE + "\n")
-   				f.write(PACKETSIZE + "\n")
-   				f.write(DEBUG + "\n")
-				f.write("\n")
-				f.write("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + lastrun + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault")
-
-			if (DEBUG.lower() == "false"):
-				sp = subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", lastrun, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
-			elif (DEBUG.lower() == "true"):
-				sp = subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", lastrun, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault", "-debug"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
-
-			subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
-			subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)
-			
-			if not (p is None):
-				#xbmcgui.Dialog().ok('', 'ZeroTier connection closed!')
-				os.killpg(os.getpgid(p.pid), signal.SIGTERM)
-				p.wait()
-			
-			#xbmcgui.Dialog().ok('', 'Stream statistics go here!')
-
+			start_running_game()
     else:
     	xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
+
+def start_running_game():
+    import xbmcgui
+    import time
+    os.setuid(os.getuid())
+    if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
+	os.remove("/storage/moonlight/aml_decoder.stats")
+    if os.path.isfile("/storage/moonlight/lastrun.txt"):
+    	# read file
+	with open("/storage/moonlight/lastrun.txt") as content_file:
+		lastrun = content_file.read()
+		p = None
+		with open("/sys/class/video/disable_video",'w') as f:
+			f.write("0")
+		time.sleep(5)
+		if os.path.isfile("/storage/moonlight/zerotier.conf"):
+    			# read file
+			with open("/storage/moonlight/zerotier.conf") as content_file:
+    				content = content_file.read()
+				if (content == "enabled"):
+					p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
+
+		ADDRESS = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 3).strip())
+		WIDTH = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 4).strip())
+		HEIGHT = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 5).strip())
+		FPS = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 6).strip())
+		BITRATE = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 7).strip())
+		PACKETSIZE = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 8).strip())
+		SOPS = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 9).strip())
+		REMOTE = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 10).strip())
+		LOCALAUDIO = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 11).strip())
+		DEBUG = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 12).strip())
+
+		with open("/storage/moonlight/launch_params.txt",'w') as f:
+			f.write(ADDRESS + "\n")
+			f.write(WIDTH + "\n")
+			f.write(HEIGHT + "\n")
+			f.write(FPS + "\n")
+			f.write(BITRATE + "\n")
+			f.write(PACKETSIZE + "\n")
+			f.write(DEBUG + "\n")
+			f.write("\n")
+			f.write("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + lastrun + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault")
+
+		if (DEBUG.lower() == "false"):
+			sp = subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", lastrun, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault", "-logging"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+		elif (DEBUG.lower() == "true"):
+			sp = subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", lastrun, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault", "-debug", "-logging"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+
+		subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
+		subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)
+		sp.wait()
+
+		main = "pkill -x moonlight"
+		heartbeat = "pkill -x moonlight-heart"
+		print(os.system(main))
+		print(os.system(heartbeat))
+			
+		if not (p is None):
+			#xbmcgui.Dialog().ok('', 'ZeroTier connection closed!')
+			os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+			p.wait()
+
+		if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
+			with open("/storage/moonlight/aml_decoder.stats") as stat_file:
+				statistics = stat_file.read()
+				if "Lowest FPS: 1000" in statistics:
+					#xbmcgui.Dialog().ok('Error', 'Stream initialisation failed...')
+					confirmed = xbmcgui.Dialog().yesno('Stream initialisation failed...', 'Try running ' + lastrun + ' again?', nolabel='No', yeslabel='Yes')
+					if confirmed:
+						start_running_game()
+
+				else:
+					xbmcgui.Dialog().ok('', statistics)
+
+		xbmcgui.Dialog().notification('Information', lastrun + ' is still running on host. Resume via Luna, ensuring to quit before your host or client is restarted!', xbmcgui.NOTIFICATION_INFO, 30000)
+
 
 def parseline(data):
     data = [str(i) for i in data.split()]
@@ -207,6 +237,25 @@ def quit_game():
 			subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
     			os.remove("/storage/moonlight/lastrun.txt") 
     			import xbmcgui
+    			xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
+    else:
+    	xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
+
+
+@plugin.route('/quit_game')
+def quit_game_sub():
+    os.setuid(os.geteuid())
+    import xbmcgui
+    if os.path.isfile("/storage/moonlight/lastrun.txt"):
+	# read file
+    	with open("/storage/moonlight/lastrun.txt") as content_file:
+    		lastrun = content_file.read()
+		confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit running game, ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+		if confirmed:
+			subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
+    			os.remove("/storage/moonlight/lastrun.txt") 
+    			import xbmcgui
+			xbmc.executebuiltin('Container.Refresh')
     			xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
     else:
     	xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
@@ -315,7 +364,7 @@ def launch_game(game_id):
     			confirmed = xbmcgui.Dialog().yesno('', 'Quit running game ' + content + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
 			if confirmed:
 				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
-    				os.remove("/storage/moonlight/lastrun.txt") 
+    				os.remove("/storage/moonlight/lastrun.txt")
 				time.sleep(5);
 				core = RequiredFeature('core').request()
 				game_controller = RequiredFeature('game-controller').request()

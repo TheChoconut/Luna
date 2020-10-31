@@ -1,4 +1,6 @@
 import xbmcgui
+import os
+import subprocess
 from resources.lib.di.requiredfeature import RequiredFeature
 from resources.lib.model.game import Game
 
@@ -78,6 +80,45 @@ class GameController:
         storage.sync()
         game_version_storage.sync()
 
+
+    def refresh_games(self):
+
+        game_list = self.moonlight_helper.list_games()
+
+        storage = self.core.get_storage()
+        game_version_storage = self.plugin.get_storage('game_version')
+
+        cache = {}
+        if game_version_storage.get('version') == Game.version:
+            cache = storage.raw_dict().copy()
+
+        storage.clear()
+
+        i = 1
+        for nvapp in game_list:
+            game = Game(nvapp.title)
+
+            if nvapp.id in cache:
+                if not storage.get(nvapp.id):
+                    storage[nvapp.id] = cache.get(nvapp.id)[0]
+            else:
+                try:
+                    storage[nvapp.id] = self.scraper_chain.query_game_information(nvapp)
+                except KeyError:
+                    self.logger.info(
+                        'Key Error thrown while getting information for game {0}: {1}'
+                        .format(nvapp.title,
+                                KeyError.message))
+                    storage[nvapp.id] = game
+            i += 1
+
+        game_version_storage.clear()
+        game_version_storage['version'] = Game.version
+
+        storage.sync()
+        game_version_storage.sync()
+
+
     def get_games_as_list(self):
         """
         Parses contents of local game storage into a list that can be interpreted by Kodi
@@ -85,7 +126,12 @@ class GameController:
         """
 
         def context_menu(game_id):
-            return [
+
+	    if os.path.isfile("/storage/moonlight/lastrun.txt"):
+		with open("/storage/moonlight/lastrun.txt") as content_file:
+			lastrun = content_file.read()
+			if (lastrun == game.name):
+            			return [
                 (
                     'Game Information',
                     'XBMC.RunPlugin(%s)' % self.plugin.url_for(
@@ -99,7 +145,61 @@ class GameController:
                         endpoint='open_settings'
                     )
                 ),
+                (		
+                    self.core.string('full_refresh'),
+                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                        endpoint='do_full_refresh'
+                    )
+                ),
                 (
+                    self.core.string('quit_game'),
+                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                        endpoint='quit_game_sub'
+                    )
+                )
+            ]
+
+
+			else:
+            			return [
+                (
+                    'Game Information',
+                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                        endpoint='show_game_info',
+                        game_id=game_id
+                    )
+                ),
+                (
+                    self.core.string('addon_settings'),
+                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                        endpoint='open_settings'
+                    )
+                ),
+                (		
+                    self.core.string('full_refresh'),
+                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                        endpoint='do_full_refresh'
+                    )
+                )
+            ]
+
+
+	    else:
+            	return [
+                (
+                    'Game Information',
+                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                        endpoint='show_game_info',
+                        game_id=game_id
+                    )
+                ),
+                (
+                    self.core.string('addon_settings'),
+                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                        endpoint='open_settings'
+                    )
+                ),
+                (		
                     self.core.string('full_refresh'),
                     'XBMC.RunPlugin(%s)' % self.plugin.url_for(
                         endpoint='do_full_refresh'
@@ -110,13 +210,24 @@ class GameController:
         storage = self.core.get_storage()
 
         if len(storage.raw_dict()) == 0:
-            self.get_games()
+            self.get_games()	
 
         items = []
         for i, game_name in enumerate(storage):
             game = storage.get(game_name)
+	    label = None
+	    if os.path.isfile("/storage/moonlight/lastrun.txt"):
+		with open("/storage/moonlight/lastrun.txt") as content_file:
+			lastrun = content_file.read()
+			if (lastrun == game.name):
+				label = u'[COLOR green]\u2588[/COLOR]' + u'[COLOR green]\u2588[/COLOR]' + "  " + game.name
+			else:
+				label = game.name
+	    else:
+		label = game.name
+
             items.append({
-                'label': game.name,
+                'label': label,
                 'icon': game.get_selected_poster(),
                 'thumbnail': game.get_selected_poster(),
                 'info': {
@@ -137,7 +248,6 @@ class GameController:
             })
 
         return items
-
     def launch_game(self, game_name):
         """
         Launches game with specified name

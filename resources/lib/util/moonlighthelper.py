@@ -14,7 +14,6 @@ from resources.lib.util.inputwrapper import InputWrapper
 from resources.lib.util.stoppableinputhandler import StoppableInputHandler
 from resources.lib.util.stoppablejshandler import StoppableJSHandler
 
-
 def loop_lines(dialog, iterator):
     """
     :type dialog:   DialogProgress
@@ -130,9 +129,10 @@ class MoonlightHelper:
     def launch_game(self, game_id):
 	import time
 	import xbmcgui
-
+	if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
+		os.remove("/storage/moonlight/aml_decoder.stats")
 	os.setuid(os.getuid())
-	with open("/storage/moonlight/launch_params.txt",'w') as f:
+	with open("/sys/class/video/disable_video",'w') as f:
 		f.write("0")
 	time.sleep(5)
 	p = None
@@ -171,20 +171,42 @@ class MoonlightHelper:
    		f.write(game_id)
 
 	if (DEBUG.lower() == "false"):
-		subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", game_id, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
-
+		sp = subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", game_id, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault", "-logging"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
 	elif (DEBUG.lower() == "true"):
-		subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", game_id, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault", "-debug"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
+		sp = subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", game_id, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault", "-debug", "-logging"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
 
 	subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
 	subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)
+	sp.wait()	
+
+	main = "pkill -x moonlight"
+	heartbeat = "pkill -x moonlight-heart"
+    	print(os.system(main))
+	print(os.system(heartbeat))
 	
 	if not (p is None):
 		#xbmcgui.Dialog().ok('', 'ZeroTier connection closed!')
 		os.killpg(os.getpgid(p.pid), signal.SIGTERM)
 		p.wait()
 
-	#xbmcgui.Dialog().ok('', 'Stream statistics go here!')
+	if os.path.isfile("/storage/moonlight/aml_decoder.stats"):				
+		with open("/storage/moonlight/aml_decoder.stats") as stat_file:
+			statistics = stat_file.read()
+			if "Lowest FPS: 1000" in statistics:
+				#xbmcgui.Dialog().ok('Error', 'Stream initialisation failed...')
+				confirmed = xbmcgui.Dialog().yesno('Stream initialisation failed...', 'Try running ' + game_id + ' again?', nolabel='No', yeslabel='Yes')
+				if confirmed:
+					self.launch_game(game_id)
+			else:
+				xbmcgui.Dialog().ok('', statistics)
+
+	
+
+    	game_controller = RequiredFeature('game-controller').request()
+    	game_controller.refresh_games()
+	del game_controller
+	xbmc.executebuiltin('Container.Refresh')
+	xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before your host or client is restarted!', xbmcgui.NOTIFICATION_INFO, 30000)
 
     def list_games(self):
         return RequiredFeature('nvhttp').request().get_app_list()
