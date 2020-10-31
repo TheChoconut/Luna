@@ -248,6 +248,7 @@ class GameController:
             })
 
         return items
+
     def launch_game(self, game_name):
         """
         Launches game with specified name
