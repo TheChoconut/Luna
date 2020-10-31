@@ -13,8 +13,8 @@ from resources.lib.views.updateinfo import UpdateInfo
 
 class UpdateService:
     regexp = '(\d+\.)?(\d+\.)?(\*|\d+)'
-    api_url = 'https://api.github.com/repos/wackerl91/luna/releases/latest'
-    pre_api_url = 'https://api.github.com/repos/wackerl91/luna/releases'
+    api_url = 'https://api.github.com/repos/stickman89/luna/releases/latest'
+    pre_api_url = 'https://api.github.com/repos/stickman89/luna/releases'
 
     def __init__(self, plugin, core, logger):
         self.plugin = plugin
