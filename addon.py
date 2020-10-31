@@ -118,6 +118,13 @@ def start_running_game():
     import xbmcgui
     import time
     os.setuid(os.getuid())
+
+    player = xbmc.Player()
+    if player.isPlayingVideo():
+	player.stop()
+
+    xbmc.audioSuspend()
+
     if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
 	os.remove("/storage/moonlight/aml_decoder.stats")
     if os.path.isfile("/storage/moonlight/lastrun.txt"):
@@ -133,7 +140,10 @@ def start_running_game():
 			with open("/storage/moonlight/zerotier.conf") as content_file:
     				content = content_file.read()
 				if (content == "enabled"):
-					p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
+					if os.path.isfile("/opt/bin/zerotier-one"):
+						p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
+					else:
+						xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
 
 		ADDRESS = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 3).strip())
 		WIDTH = parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 4).strip())
@@ -170,6 +180,8 @@ def start_running_game():
 		heartbeat = "pkill -x moonlight-heart"
 		print(os.system(main))
 		print(os.system(heartbeat))
+
+		xbmc.audioResume()
 			
 		if not (p is None):
 			#xbmcgui.Dialog().ok('', 'ZeroTier connection closed!')
@@ -188,7 +200,7 @@ def start_running_game():
 				else:
 					xbmcgui.Dialog().ok('', statistics)
 
-		xbmcgui.Dialog().notification('Information', lastrun + ' is still running on host. Resume via Luna, ensuring to quit before your host or client is restarted!', xbmcgui.NOTIFICATION_INFO, 30000)
+		xbmcgui.Dialog().notification('Information', lastrun + ' is still running on host. Resume via Luna, ensuring to quit before your host or client is restarted!', xbmcgui.NOTIFICATION_INFO, 15000, False)
 
 
 def parseline(data):
@@ -232,7 +244,7 @@ def quit_game():
 	# read file
     	with open("/storage/moonlight/lastrun.txt") as content_file:
 			lastrun = content_file.read()
-			confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit running game, ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+			confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
 			if confirmed:
 				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
 				os.remove("/storage/moonlight/lastrun.txt") 
@@ -251,7 +263,7 @@ def quit_game_sub():
 	# read file
     	with open("/storage/moonlight/lastrun.txt") as content_file:
 			lastrun = content_file.read()
-			confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit running game, ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+			confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
 			if confirmed:
 				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
 				os.remove("/storage/moonlight/lastrun.txt") 
@@ -361,9 +373,9 @@ def launch_game(game_id):
     if os.path.isfile("/storage/moonlight/lastrun.txt"):
     	# read file
 	with open("/storage/moonlight/lastrun.txt") as content_file:
-    		content = content_file.read()
-		if (content != game_id):
-    			confirmed = xbmcgui.Dialog().yesno('', 'Quit running game ' + content + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+    		lastrun = content_file.read()
+		if (lastrun != game_id):
+    			confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
 			if confirmed:
 				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
     				os.remove("/storage/moonlight/lastrun.txt")

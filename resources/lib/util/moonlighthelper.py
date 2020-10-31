@@ -129,6 +129,13 @@ class MoonlightHelper:
     def launch_game(self, game_id):
 	import time
 	import xbmcgui
+
+	player = xbmc.Player()
+	if player.isPlayingVideo():
+    		player.stop()
+
+	xbmc.audioSuspend()
+
 	if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
 		os.remove("/storage/moonlight/aml_decoder.stats")
 	os.setuid(os.getuid())
@@ -141,7 +148,10 @@ class MoonlightHelper:
 		with open("/storage/moonlight/zerotier.conf") as content_file:
     			content = content_file.read()
 			if (content == "enabled"):
-				p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
+				if os.path.isfile("/opt/bin/zerotier-one"):
+					p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
+				else:
+					xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
 
         self.config_helper.configure()
 
@@ -183,6 +193,8 @@ class MoonlightHelper:
 	heartbeat = "pkill -x moonlight-heart"
     	print(os.system(main))
 	print(os.system(heartbeat))
+
+	xbmc.audioResume()
 	
 	if not (p is None):
 		#xbmcgui.Dialog().ok('', 'ZeroTier connection closed!')
@@ -206,7 +218,7 @@ class MoonlightHelper:
     	game_controller.refresh_games()
 	del game_controller
 	xbmc.executebuiltin('Container.Refresh')
-	xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before your host or client is restarted!', xbmcgui.NOTIFICATION_INFO, 30000)
+	xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before your host or client is restarted!', xbmcgui.NOTIFICATION_INFO, 15000, False)
 
     def list_games(self):
         return RequiredFeature('nvhttp').request().get_app_list()
