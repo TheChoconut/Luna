@@ -231,13 +231,14 @@ def quit_game():
     if os.path.isfile("/storage/moonlight/lastrun.txt"):
 	# read file
     	with open("/storage/moonlight/lastrun.txt") as content_file:
-    		lastrun = content_file.read()
-		confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit running game, ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
-		if confirmed:
-			subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
-    			os.remove("/storage/moonlight/lastrun.txt") 
-    			import xbmcgui
-    			xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
+			lastrun = content_file.read()
+			confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit running game, ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+			if confirmed:
+				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+				os.remove("/storage/moonlight/lastrun.txt") 
+				xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
+				main = "pkill -x moonlight"
+				print(os.system(main))
     else:
     	xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
 
@@ -249,14 +250,15 @@ def quit_game_sub():
     if os.path.isfile("/storage/moonlight/lastrun.txt"):
 	# read file
     	with open("/storage/moonlight/lastrun.txt") as content_file:
-    		lastrun = content_file.read()
-		confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit running game, ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
-		if confirmed:
-			subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
-    			os.remove("/storage/moonlight/lastrun.txt") 
-    			import xbmcgui
-			xbmc.executebuiltin('Container.Refresh')
-    			xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
+			lastrun = content_file.read()
+			confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit running game, ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+			if confirmed:
+				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+				os.remove("/storage/moonlight/lastrun.txt") 
+				xbmc.executebuiltin('Container.Refresh')
+				xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
+				main = "pkill -x moonlight"
+				print(os.system(main))
     else:
     	xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
 
