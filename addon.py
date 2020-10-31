@@ -365,9 +365,12 @@ def launch_game(game_id):
 		if (content != game_id):
     			confirmed = xbmcgui.Dialog().yesno('', 'Quit running game ' + content + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
 			if confirmed:
-				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False)
+				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
     				os.remove("/storage/moonlight/lastrun.txt")
-				time.sleep(5);
+				time.sleep(2);
+				main = "pkill -x moonlight"
+				print(os.system(main))
+				time.sleep(2);
 				core = RequiredFeature('core').request()
 				game_controller = RequiredFeature('game-controller').request()
 				core.logger.info('Launching game %s' % game_id)
