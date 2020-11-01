@@ -220,7 +220,7 @@ class GameController:
 		with open("/storage/moonlight/lastrun.txt") as content_file:
 			lastrun = content_file.read()
 			if (lastrun == game.name):
-				label = u'[COLOR green]\u2588[/COLOR]' + u'[COLOR green]\u2588[/COLOR]' + "  " + game.name
+				label = u'[COLOR green]\u2588[/COLOR]' + u'[COLOR green]\u2588[/COLOR]' + '\n' + game.name
 			else:
 				label = game.name
 	    else:

@@ -218,7 +218,7 @@ class MoonlightHelper:
     	game_controller.refresh_games()
 	del game_controller
 	xbmc.executebuiltin('Container.Refresh')
-	xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before your host or client is restarted!', xbmcgui.NOTIFICATION_INFO, 15000, False)
+	xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, 15000, False)
 
     def list_games(self):
         return RequiredFeature('nvhttp').request().get_app_list()

@@ -4,6 +4,7 @@ import threading
 import subprocess
 import linecache
 import signal
+import requests
 
 from resources.lib.di.requiredfeature import RequiredFeature
 
@@ -11,6 +12,7 @@ plugin = RequiredFeature('plugin').request()
 
 addon_path = plugin.storage_path
 addon_internal_path = plugin.addon.getAddonInfo('path')
+
 
 @plugin.route('/')
 def index():
@@ -104,15 +106,23 @@ def resume_game():
     import xbmcgui
     import time
     os.setuid(os.getuid())
-    if os.path.isfile("/storage/moonlight/lastrun.txt"):
-    	# read file
-	with open("/storage/moonlight/lastrun.txt") as content_file:
-		lastrun = content_file.read()
-    		confirmed = xbmcgui.Dialog().yesno('', 'Resume playing ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
-		if confirmed:
-			start_running_game()
+    if (check_host(plugin.get_setting('host', str)) == True):
+    	if os.path.isfile("/storage/moonlight/lastrun.txt"):
+    		# read file
+		with open("/storage/moonlight/lastrun.txt") as content_file:
+			lastrun = content_file.read()
+    			confirmed = xbmcgui.Dialog().yesno('', 'Resume playing ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+			if confirmed:
+				start_running_game()
+    	else:
+    		xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
     else:
-    	xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
+	if os.path.isfile("/storage/moonlight/lastrun.txt"):
+		cleanup = xbmcgui.Dialog().yesno('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue. \nIf you have restarted the host since your last session, you will need to remove residual data. \n\nWould you like to remove residual data now?', nolabel='No', yeslabel='Yes')
+		if cleanup:
+    			os.remove("/storage/moonlight/lastrun.txt") 
+	else:
+		xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
 def start_running_game():
     import xbmcgui
@@ -200,7 +210,8 @@ def start_running_game():
 				else:
 					xbmcgui.Dialog().ok('', statistics)
 
-		xbmcgui.Dialog().notification('Information', lastrun + ' is still running on host. Resume via Luna, ensuring to quit before your host or client is restarted!', xbmcgui.NOTIFICATION_INFO, 15000, False)
+		xbmcgui.Dialog().notification('Information', lastrun + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, 15000, False)
+
 
 
 def parseline(data):
@@ -240,39 +251,55 @@ def zerotier_connect():
 def quit_game():
     os.setuid(os.geteuid())
     import xbmcgui
-    if os.path.isfile("/storage/moonlight/lastrun.txt"):
-	# read file
-    	with open("/storage/moonlight/lastrun.txt") as content_file:
-			lastrun = content_file.read()
-			confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
-			if confirmed:
-				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
-				os.remove("/storage/moonlight/lastrun.txt") 
-				xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
-				main = "pkill -x moonlight"
-				print(os.system(main))
+    if (check_host(plugin.get_setting('host', str)) == True):
+    	if os.path.isfile("/storage/moonlight/lastrun.txt"):
+		# read file
+    		with open("/storage/moonlight/lastrun.txt") as content_file:
+				lastrun = content_file.read()
+				confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+				if confirmed:
+					subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+					os.remove("/storage/moonlight/lastrun.txt") 
+					xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
+					main = "pkill -x moonlight"
+					print(os.system(main))
+	else:
+		xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
     else:
-    	xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
+	if os.path.isfile("/storage/moonlight/lastrun.txt"):
+		cleanup = xbmcgui.Dialog().yesno('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue. \nIf you have restarted the host since your last session, you will need to remove residual data. \n\nWould you like to remove residual data now?', nolabel='No', yeslabel='Yes')
+		if cleanup:
+    			os.remove("/storage/moonlight/lastrun.txt") 
+	else:
+		xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
 
 @plugin.route('/quit_game')
 def quit_game_sub():
     os.setuid(os.geteuid())
     import xbmcgui
-    if os.path.isfile("/storage/moonlight/lastrun.txt"):
-	# read file
-    	with open("/storage/moonlight/lastrun.txt") as content_file:
-			lastrun = content_file.read()
-			confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
-			if confirmed:
-				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
-				os.remove("/storage/moonlight/lastrun.txt") 
-				xbmc.executebuiltin('Container.Refresh')
-				xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
-				main = "pkill -x moonlight"
-				print(os.system(main))
+    if (check_host(plugin.get_setting('host', str)) == True):
+    	if os.path.isfile("/storage/moonlight/lastrun.txt"):
+		# read file
+    		with open("/storage/moonlight/lastrun.txt") as content_file:
+				lastrun = content_file.read()
+				confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+				if confirmed:
+					subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+					os.remove("/storage/moonlight/lastrun.txt") 
+					xbmc.executebuiltin('Container.Refresh')
+					xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
+					main = "pkill -x moonlight"
+					print(os.system(main))
+    	else:
+    		xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
     else:
-    	xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
+	if os.path.isfile("/storage/moonlight/lastrun.txt"):
+		cleanup = xbmcgui.Dialog().yesno('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue. \nIf you have restarted the host since your last session, you will need to remove residual data. \n\nWould you like to remove residual data now?', nolabel='No', yeslabel='Yes')
+		if cleanup:
+    			os.remove("/storage/moonlight/lastrun.txt") 
+	else:
+		xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
 
 @plugin.route('/update')
@@ -292,7 +319,6 @@ def create_mapping():
 
 @plugin.route('/actions/pair-host')
 def pair_host():
-
     config_controller = RequiredFeature('config-controller').request()
     config_controller.pair_host()
     del config_controller
@@ -332,12 +358,26 @@ def rollback_osmc_skin():
     xbmc.executebuiltin('ReloadSkin')
 
 
+def check_host(hostname):
+    try:
+    	request = requests.get("http://" + hostname + ":47989/serverinfo?", timeout=10)
+    	if request.status_code == 200:
+		return True
+    	return False
+    except (requests.exceptions.Timeout, requests.ConnectionError), e:
+	print e
+	return False
+
+
 @plugin.route('/games')
 def show_games():
-    game_controller = RequiredFeature('game-controller').request()
-    plugin.set_content('movies')
-    return plugin.finish(game_controller.get_games_as_list(), sort_methods=['label'])
-
+    import xbmcgui
+    if (check_host(plugin.get_setting('host', str)) == True):
+   	game_controller = RequiredFeature('game-controller').request()
+   	plugin.set_content('movies')
+    	return plugin.finish(game_controller.get_games_as_list(), sort_methods=['label'])
+    else:
+	xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
 @plugin.route('/games/refresh')
 def do_full_refresh():
@@ -370,41 +410,49 @@ def launch_game(game_id):
     os.setuid(os.geteuid())
     import xbmcgui
     import time
-    if os.path.isfile("/storage/moonlight/lastrun.txt"):
-    	# read file
-	with open("/storage/moonlight/lastrun.txt") as content_file:
-    		lastrun = content_file.read()
-		if (lastrun != game_id):
-    			confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
-			if confirmed:
-				subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
-    				os.remove("/storage/moonlight/lastrun.txt")
-				time.sleep(2);
-				main = "pkill -x moonlight"
-				print(os.system(main))
-				time.sleep(2);
+    if (check_host(plugin.get_setting('host', str)) == True):
+    	if os.path.isfile("/storage/moonlight/lastrun.txt"):
+    		# read file
+		with open("/storage/moonlight/lastrun.txt") as content_file:
+    			lastrun = content_file.read()
+			if (lastrun != game_id):
+    				confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+				if confirmed:
+					subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+    					os.remove("/storage/moonlight/lastrun.txt")
+					time.sleep(2);
+					main = "pkill -x moonlight"
+					print(os.system(main))
+					time.sleep(2);
+					core = RequiredFeature('core').request()
+					game_controller = RequiredFeature('game-controller').request()
+					core.logger.info('Launching game %s' % game_id)
+					game_controller.launch_game(game_id)
+					del core
+					del game_controller
+			else:
 				core = RequiredFeature('core').request()
 				game_controller = RequiredFeature('game-controller').request()
 				core.logger.info('Launching game %s' % game_id)
 				game_controller.launch_game(game_id)
 				del core
 				del game_controller
-		else:
-			core = RequiredFeature('core').request()
-			game_controller = RequiredFeature('game-controller').request()
-			core.logger.info('Launching game %s' % game_id)
-			game_controller.launch_game(game_id)
-			del core
-			del game_controller
 
 			
+    	else:
+		core = RequiredFeature('core').request()
+		game_controller = RequiredFeature('game-controller').request()
+		core.logger.info('Launching game %s' % game_id)
+		game_controller.launch_game(game_id)
+		del core
+		del game_controller
     else:
-	core = RequiredFeature('core').request()
-	game_controller = RequiredFeature('game-controller').request()
-	core.logger.info('Launching game %s' % game_id)
-	game_controller.launch_game(game_id)
-	del core
-	del game_controller
+	if os.path.isfile("/storage/moonlight/lastrun.txt"):
+		cleanup = xbmcgui.Dialog().yesno('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue. \nIf you have restarted the host since your last session, you will need to remove residual data. \n\nWould you like to remove residual data now?', nolabel='No', yeslabel='Yes')
+		if cleanup:
+    			os.remove("/storage/moonlight/lastrun.txt") 
+	else:
+		xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
 
 @plugin.route('/games/launch-from-widget/<xml_id>')
@@ -455,3 +503,4 @@ if __name__ == '__main__':
                 core.string('configure_first')
         )
         del core
+	open_settings()
