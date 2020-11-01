@@ -2,3 +2,5 @@ v0.3.0-alpha:
 -- during alpha changelog won't be updated, except version number
 v1.6.4-alpha:
 -- Modified for Kodi, resume support, quit running game, new icons and zerotier support (install via Entware)
+v1.6.5-alpha:
+-- Initial release of Luna mod
