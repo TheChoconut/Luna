@@ -4,3 +4,5 @@ v1.6.4-alpha:
 -- Modified for Kodi, resume support, quit running game, new icons and zerotier support (install via Entware)
 v1.6.5-alpha:
 -- Initial release of Luna mod
+v1.6.6-alpha:
+-- A few fixes integrated, and new options added to Settings (see GitHub for detailed changelog)

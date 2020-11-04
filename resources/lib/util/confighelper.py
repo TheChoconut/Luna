@@ -3,13 +3,13 @@ import os
 
 
 class ConfigHelper:
-    conf = 'luna.conf'
+    conf = 'moonlight.conf'
 
     def __init__(self, plugin, logger):
         self.plugin = plugin
         self.logger = logger
         self._reset()
-        self.full_path = ''.join([self.plugin.storage_path, self.conf])
+        self.full_path = "/storage/moonlight/" + self.conf
         self.configure(False)
 
     def _reset(self):
@@ -31,12 +31,15 @@ class ConfigHelper:
         self.full_path = None
         self.audio_device = None
         self.enable_moonlight_debug = None
+        self.codec = None
+        self.enable_surround_audio = None
 
     def _configure(self, addon_path, binary_path=None, host_ip=None, enable_custom_res=False, resolution_width=None,
                    resolution_height=None, resolution=None,
                    framerate=None, graphics_optimizations=False, remote_optimizations=False, local_audio=False,
                    enable_custom_bitrate=False, bitrate=None, packetsize=None,
-                   enable_custom_input=False, override_default_resolution=False, audio_device=None, enable_moonlight_debug=False):
+                   enable_custom_input=False, override_default_resolution=False, audio_device=None, enable_moonlight_debug=False, codec=None,
+                   enable_surround_audio=False):
 
         self.addon_path = addon_path
         self.binary_path = binary_path
@@ -55,9 +58,11 @@ class ConfigHelper:
         self.enable_custom_input = enable_custom_input
         self.override_default_resolution = override_default_resolution
         self.audio_device = audio_device
-	self.enable_moonlight_debug = enable_moonlight_debug
+        self.enable_moonlight_debug = enable_moonlight_debug
+        self.codec = codec
+        self.enable_surround_audio = enable_surround_audio
 
-        self.full_path = ''.join([self.addon_path, self.conf])
+        self.full_path = "/storage/moonlight/" + self.conf
 
     def configure(self, dump=True):
         binary_path = self._find_binary()
@@ -74,16 +79,18 @@ class ConfigHelper:
             'resolution_height':            self.plugin.get_setting('resolution_height', str),
             'resolution':                   self.plugin.get_setting('resolution', str),
             'framerate':                    self.plugin.get_setting('framerate', str),
-            'graphics_optimizations':       self.plugin.get_setting('graphic_optimizations', bool),
-            'remote_optimizations':         self.plugin.get_setting('remote_optimizations', bool),
-            'local_audio':                  self.plugin.get_setting('local_audio', bool),
+            'graphics_optimizations':       self.plugin.get_setting('graphic_optimizations', str),
+            'remote_optimizations':         self.plugin.get_setting('remote_optimizations', str),
+            'local_audio':                  self.plugin.get_setting('local_audio', str),
             'enable_custom_bitrate':        self.plugin.get_setting('enable_custom_bitrate', bool),
             'bitrate':                      self.plugin.get_setting('bitrate', int),
             'packetsize':                   self.plugin.get_setting('packetsize', int),
             'enable_custom_input':          self.plugin.get_setting('enable_custom_input', bool),
             'override_default_resolution':  self.plugin.get_setting('override_default_resolution', bool),
             'audio_device':                 self.plugin.get_setting('audio_device', str),
-            'enable_moonlight_debug':       self.plugin.get_setting('enable_moonlight_debug', str)
+            'enable_moonlight_debug':       self.plugin.get_setting('enable_moonlight_debug', str),
+            'codec':                        self.plugin.get_setting('codec', str),
+            'enable_surround_audio':        self.plugin.get_setting('enable_surround_audio', str)
         }
         self._configure(**settings)
 
@@ -97,62 +104,69 @@ class ConfigHelper:
         config = ConfigParser.ConfigParser()
         config.read(self.full_path)
 
-        if 'General' not in config.sections():
-            config.add_section('General')
+        if 'Moonlight' not in config.sections():
+            config.add_section('Moonlight')
 
-        config.set('General', 'binpath', self.binary_path)
-        config.set('General', 'address', self.host_ip)
+        config.set('Moonlight', 'binpath', self.binary_path)
+        config.set('Moonlight', 'address', self.host_ip)
 
         if not self.override_default_resolution:
-		config.set('General', 'width', 1280)
-		config.set('General', 'height', 720)
+		    config.set('Moonlight', 'width', 1280)
+		    config.set('Moonlight', 'height', 720)
         
-	##else:
-        #if self.enable_custom_res:
-        #config.set('General', 'width', int(self.resolution_width[0]))
-        #config.set('General', 'height', int(self.resolution_height[0]))
+        if self.override_default_resolution:
+            if self.resolution == '3840x2160':
+                config.set('Moonlight', 'width', 3840)
+                config.set('Moonlight', 'height', 2160)
+            if self.resolution == '2560x1440':
+                config.set('Moonlight', 'width', 2560)
+                config.set('Moonlight', 'height', 1440)
+            if self.resolution == '1920x1080':
+                config.set('Moonlight', 'width', 1920)
+                config.set('Moonlight', 'height', 1080)
+            if self.resolution == '1280x720':
+                config.set('Moonlight', 'width', 1280)
+                config.set('Moonlight', 'height', 720)
 
-        #else:
-
-	if self.override_default_resolution:
-		if self.resolution == '1920x1080':
-			config.set('General', 'width', 1920)
-			config.set('General', 'height', 1080)
-        	if self.resolution == '1280x720':
-			config.set('General', 'width', 1280)
-			config.set('General', 'height', 720)
-
-	if not self.framerate:
-		config.set('General', 'fps', 30)
-	else:
-	        config.set('General', 'fps', self.framerate)
+        if not self.framerate:
+            config.set('Moonlight', 'fps', 30)
+        else:
+	        config.set('Moonlight', 'fps', self.framerate)
 
         if self.enable_custom_bitrate:
-            config.set('General', 'bitrate', int(self.bitrate) * 1000)
+            config.set('Moonlight', 'bitrate', int(self.bitrate) * 1000)
         else:
-            config.set('General', 'bitrate', -1)
+            config.set('Moonlight', 'bitrate', -1)
 
         if self.packetsize != 1024:
-            config.set('General', 'packetsize', self.packetsize)
+            config.set('Moonlight', 'packetsize', self.packetsize)
         else:
-            config.set('General', 'packetsize', 1024)
+            config.set('Moonlight', 'packetsize', 1024)
 
-        config.set('General', 'sops', self.graphics_optimizations)
-        config.set('General', 'remote', self.remote_optimizations)
-        config.set('General', 'localaudio', self.local_audio)
-	config.set('General', 'debug', self.enable_moonlight_debug)
+        config.set('Moonlight', 'sops', self.graphics_optimizations)
+        config.set('Moonlight', 'remote', self.remote_optimizations)
+        config.set('Moonlight', 'localaudio', self.local_audio)
+        config.set('Moonlight', 'debug', self.enable_moonlight_debug)
+        
+        if self.plugin.get_setting('local_audio', str) == 'false':
+            if self.plugin.get_setting('custom_audio_device', str) == 'true':
+                if self.plugin.get_setting('audio_device_parameter', str):
+                    config.set('Moonlight', 'audio', self.plugin.get_setting('audio_device_parameter', str))
+                else:
+                    config.set('Moonlight', 'audio', self.audio_device)
+            else:
+                config.set('Moonlight', 'audio', self.audio_device)
+        else:
+            config.remove_option('Moonlight', 'audio')
 
-        if self.audio_device == 'sysdefault':
-            if config.has_option('General', 'audio'):
-                config.remove_option('General', 'audio')
-        elif self.audio_device:
-            config.set('General', 'audio', self.audio_device)
+        config.set('Moonlight', 'codec', self.codec)
+        config.set('Moonlight', 'surround', self.enable_surround_audio)
 
-        if config.has_option('General', 'mapping'):
-            config.remove_option('General', 'mapping')
+        if config.has_option('Moonlight', 'mapping'):
+            config.remove_option('Moonlight', 'mapping')
 
-        if config.has_option('General', 'input'):
-            config.remove_option('General', 'input')
+        if config.has_option('Moonlight', 'input'):
+            config.remove_option('Moonlight', 'input')
 
         for section in config.sections():
             if section[:-2] == 'Input':
@@ -197,7 +211,7 @@ class ConfigHelper:
             self.logger.info(
                     '[ConfigHelper] - Successfully loaded config file > trying to access binary path now')
 
-            return self._config_map('General', cp)['binpath']
+            return self._config_map('Moonlight', cp)['binpath']
 
         except:
             self.logger.info(
@@ -212,7 +226,7 @@ class ConfigHelper:
     def get_host(self):
         cp = ConfigParser.ConfigParser()
         cp.read(self.full_path)
-        return self._config_map('General', cp)['address']
+        return self._config_map('Moonlight', cp)['address']
 
     def check_for_config_file(self):
         return os.path.isfile(self.full_path)
@@ -230,7 +244,7 @@ class ConfigHelper:
         binary_locations = [
             '/usr/bin/moonlight',
             '/usr/local/bin/moonlight',
-	    '/storage/moonlight/moonlight'
+            '/storage/moonlight/moonlight'
         ]
 
         for f in binary_locations:

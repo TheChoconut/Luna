@@ -127,11 +127,41 @@ class GameController:
 
         def context_menu(game_id):
 
-	    if os.path.isfile("/storage/moonlight/lastrun.txt"):
-		with open("/storage/moonlight/lastrun.txt") as content_file:
-			lastrun = content_file.read()
-			if (lastrun == game.name):
-            			return [
+            if os.path.isfile("/storage/moonlight/lastrun.txt"):
+                with open("/storage/moonlight/lastrun.txt") as content_file:
+                    lastrun = content_file.read()
+                    if (lastrun == game.name):
+                        return [
+                    (
+                        'Game Information',
+                        'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                            endpoint='show_game_info',
+                            game_id=game_id
+                        )
+                    ),
+                    (
+                        self.core.string('addon_settings'),
+                        'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                            endpoint='open_settings'
+                        )
+                    ),
+                    (
+                        self.core.string('full_refresh'),
+                        'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                            endpoint='do_full_refresh'
+                        )
+                    ),
+                    (
+                        self.core.string('quit_game'),
+                        'XBMC.RunPlugin(%s)' % self.plugin.url_for(
+                            endpoint='quit_game_sub'
+                        )
+                    )
+                ]
+
+
+                    else:
+                        return [
                 (
                     'Game Information',
                     'XBMC.RunPlugin(%s)' % self.plugin.url_for(
@@ -145,23 +175,17 @@ class GameController:
                         endpoint='open_settings'
                     )
                 ),
-                (		
+                (
                     self.core.string('full_refresh'),
                     'XBMC.RunPlugin(%s)' % self.plugin.url_for(
                         endpoint='do_full_refresh'
-                    )
-                ),
-                (
-                    self.core.string('quit_game'),
-                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                        endpoint='quit_game_sub'
                     )
                 )
             ]
 
 
-			else:
-            			return [
+            else:
+                return [
                 (
                     'Game Information',
                     'XBMC.RunPlugin(%s)' % self.plugin.url_for(
@@ -175,31 +199,7 @@ class GameController:
                         endpoint='open_settings'
                     )
                 ),
-                (		
-                    self.core.string('full_refresh'),
-                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                        endpoint='do_full_refresh'
-                    )
-                )
-            ]
-
-
-	    else:
-            	return [
                 (
-                    'Game Information',
-                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                        endpoint='show_game_info',
-                        game_id=game_id
-                    )
-                ),
-                (
-                    self.core.string('addon_settings'),
-                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                        endpoint='open_settings'
-                    )
-                ),
-                (		
                     self.core.string('full_refresh'),
                     'XBMC.RunPlugin(%s)' % self.plugin.url_for(
                         endpoint='do_full_refresh'
@@ -210,21 +210,21 @@ class GameController:
         storage = self.core.get_storage()
 
         if len(storage.raw_dict()) == 0:
-            self.get_games()	
+            self.get_games()
 
         items = []
         for i, game_name in enumerate(storage):
             game = storage.get(game_name)
-	    label = None
-	    if os.path.isfile("/storage/moonlight/lastrun.txt"):
-		with open("/storage/moonlight/lastrun.txt") as content_file:
-			lastrun = content_file.read()
-			if (lastrun == game.name):
-				label = u'[COLOR green]\u2588[/COLOR]' + u'[COLOR green]\u2588[/COLOR]' + '\n' + game.name
-			else:
-				label = game.name
-	    else:
-		label = game.name
+            label = None
+            if os.path.isfile("/storage/moonlight/lastrun.txt"):
+                with open("/storage/moonlight/lastrun.txt") as content_file:
+                    lastrun = content_file.read()
+                    if (lastrun == game.name):
+                        label = u'[COLOR green]\u2588[/COLOR]' + u'[COLOR green]\u2588[/COLOR]' + '\n' + game.name
+                    else:
+                        label = game.name
+            else:
+                label = game.name
 
             items.append({
                 'label': label,

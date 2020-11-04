@@ -122,103 +122,72 @@ class MoonlightHelper:
     def pair_host(self, dialog):
         return RequiredFeature('connection-manager').request().pair(dialog)
 
-    def parseline(self, data):
-	data = [str(i) for i in data.split()]
-	return str(data[2]).strip()
-
     def launch_game(self, game_id):
-	import time
-	import xbmcgui
+        import time
+        import xbmcgui
 
-	player = xbmc.Player()
-	if player.isPlayingVideo():
+        player = xbmc.Player()
+        if player.isPlayingVideo():
     		player.stop()
 
-	xbmc.audioSuspend()
+        xbmc.audioSuspend()
 
-	if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
-		os.remove("/storage/moonlight/aml_decoder.stats")
-	os.setuid(os.getuid())
-	with open("/sys/class/video/disable_video",'w') as f:
-		f.write("0")
-	time.sleep(5)
-	p = None
-	if os.path.isfile("/storage/moonlight/zerotier.conf"):
-    		# read file
-		with open("/storage/moonlight/zerotier.conf") as content_file:
-    			content = content_file.read()
-			if (content == "enabled"):
-				if os.path.isfile("/opt/bin/zerotier-one"):
-					p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
-				else:
-					xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
+        if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
+		    os.remove("/storage/moonlight/aml_decoder.stats")
+        os.setuid(os.getuid())
+        with open("/sys/class/video/disable_video",'w') as f:
+            f.write("0")
+        time.sleep(5)
+        p = None
+        if os.path.isfile("/storage/moonlight/zerotier.conf"):
+            # read file
+            with open("/storage/moonlight/zerotier.conf") as content_file:
+                content = content_file.read()
+                if (content == "enabled"):
+                    if os.path.isfile("/opt/bin/zerotier-one"):
+                        p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
+                    else:
+                        xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
 
         self.config_helper.configure()
 
-	ADDRESS = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 3).strip())
-	WIDTH = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 4).strip())
-	HEIGHT = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 5).strip())
-	FPS = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 6).strip())
-	BITRATE = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 7).strip())
-	PACKETSIZE = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 8).strip())
-	SOPS = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 9).strip())
-	REMOTE = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 10).strip())
-	LOCALAUDIO = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 11).strip())
-	DEBUG = self.parseline(linecache.getline('/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf', 12).strip())
+        with open("/storage/moonlight/lastrun.txt","w") as f:
+            f.write(game_id)
 
-	with open("/storage/moonlight/launch_params.txt",'w') as f:
-   		f.write(ADDRESS + "\n")
-   		f.write(WIDTH + "\n")
-   		f.write(HEIGHT + "\n")
-   		f.write(FPS + "\n")
-   		f.write(BITRATE + "\n")
-		f.write(PACKETSIZE + "\n")
-   		f.write(DEBUG + "\n")
-		f.write("\n")
-		f.write("LD_LIBRARY_PATH=/storage/moonlight /storage/moonlight/moonlight stream " + ADDRESS + " -app " + "\"" + game_id + "\"" + " -width " + WIDTH + " -height " + HEIGHT + " -fps " + FPS + " -bitrate " + BITRATE + " -packetsize " + PACKETSIZE + " -codec h265 -audio sysdefault")
+        sp = subprocess.Popen(["moonlight", "stream", "-app", game_id, "-logging"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
 
-	with open("/storage/moonlight/lastrun.txt","w") as f:
-   		f.write(game_id)
+        subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
+        subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)
+        sp.wait()	
 
-	if (DEBUG.lower() == "false"):
-		sp = subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", game_id, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault", "-logging"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
-	elif (DEBUG.lower() == "true"):
-		sp = subprocess.Popen(["moonlight", "stream", ADDRESS, "-app", game_id, "-width", WIDTH, "-height", HEIGHT, "-fps", FPS, "-bitrate", BITRATE, "-packetsize", PACKETSIZE, "-codec", "h265", "-audio", "sysdefault", "-debug", "-logging"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+        main = "pkill -x moonlight"
+        heartbeat = "pkill -x moonlight-heart"
+        print(os.system(main))
+        print(os.system(heartbeat))
 
-	subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
-	subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)
-	sp.wait()	
-
-	main = "pkill -x moonlight"
-	heartbeat = "pkill -x moonlight-heart"
-    	print(os.system(main))
-	print(os.system(heartbeat))
-
-	xbmc.audioResume()
+        xbmc.audioResume()
 	
-	if not (p is None):
-		#xbmcgui.Dialog().ok('', 'ZeroTier connection closed!')
-		os.killpg(os.getpgid(p.pid), signal.SIGTERM)
-		p.wait()
+        if not (p is None):
+            #xbmcgui.Dialog().ok('', 'ZeroTier connection closed!')
+            os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+            p.wait()
 
-	if os.path.isfile("/storage/moonlight/aml_decoder.stats"):				
-		with open("/storage/moonlight/aml_decoder.stats") as stat_file:
-			statistics = stat_file.read()
-			if "Lowest FPS: 1000" in statistics:
-				#xbmcgui.Dialog().ok('Error', 'Stream initialisation failed...')
-				confirmed = xbmcgui.Dialog().yesno('Stream initialisation failed...', 'Try running ' + game_id + ' again?', nolabel='No', yeslabel='Yes')
-				if confirmed:
-					self.launch_game(game_id)
-			else:
-				xbmcgui.Dialog().ok('', statistics)
+        if os.path.isfile("/storage/moonlight/aml_decoder.stats"):				
+            with open("/storage/moonlight/aml_decoder.stats") as stat_file:
+                statistics = stat_file.read()
+                if "StreamStatus = -1" in statistics:
+                    #xbmcgui.Dialog().ok('Error', 'Stream initialisation failed...')
+                    confirmed = xbmcgui.Dialog().yesno('Stream initialisation failed...', 'Try running ' + game_id + ' again?', nolabel='No', yeslabel='Yes')
+                    if confirmed:
+                        self.launch_game(game_id)
+                else:
+                    xbmcgui.Dialog().ok('Stream statistics', statistics)
 
-	
-
-    	game_controller = RequiredFeature('game-controller').request()
-    	game_controller.refresh_games()
-	del game_controller
-	xbmc.executebuiltin('Container.Refresh')
-	xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, 15000, False)
+        game_controller = RequiredFeature('game-controller').request()
+        game_controller.refresh_games()
+        del game_controller
+        xbmc.executebuiltin('Container.Refresh')
+        xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, 15000, False)
 
     def list_games(self):
         return RequiredFeature('nvhttp').request().get_app_list()

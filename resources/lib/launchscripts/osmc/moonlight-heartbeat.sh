@@ -15,8 +15,8 @@ while [ true ]; do
         else
 	    echo 'Moonlight is running'
 	    if [ -f "/storage/moonlight/aml_decoder.stats" ]; then
-	    	failed="$(sed '2!d' "/storage/moonlight/aml_decoder.stats" | awk 'END {print $NF}')"
-	    	if [[ ${failed} == "1000" ]]; then
+	    	failed="$(sed '1!d' "/storage/moonlight/aml_decoder.stats" | awk 'END {print $NF}')"
+	    	if [[ ${failed} == "-1" ]]; then
 	    		killall moonlight
 			echo 1 > /sys/class/video/disable_video
 			killall -CONT kodi.bin

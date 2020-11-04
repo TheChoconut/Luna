@@ -16,14 +16,14 @@
     <string id="30011">Bitrate (Mbps)</string>
     <string id="30012">Packetsize (bytes)</string>
     <string id="30013">Enable Remote Connection Opimizations</string>
-    <string id="30014">Enable GFE Graphics Optimization</string>
+    <string id="30014">Enable GFE Graphics Optimizations</string>
     <string id="30015">Play Audio on Host</string>
     <string id="30016">Input</string>
     <string id="30017">Enable Custom Input</string>
     <string id="30018">Input Map</string>
     <string id="30019">Input Device</string>
     <string id="30020">Create Controller Map</string>
-    <string id="30021">Scraper</string>
+    <string id="30021">Helper</string>
     <string id="30022">Clear Game Cache</string>
     <string id="30023">Override Default Resolution</string>
     <string id="30024">Disable Experimental Scraper Feature</string>
@@ -38,9 +38,14 @@
     <string id="30033">Force Enable Fanart (Movies and Luna)</string>
     <string id="30034">Select Input Device(s)</string>
     <string id="30035">Enable Pre-Release Updates</string>
-    <string id="30036">Selected Device</string>
+    <string id="30036">Audio Parameter</string>
     <string id="30037">Select Audio Device</string>
     <string id="30038">Enable Moonlight Debug Output</string>
+    <string id="30039">Audio Backend</string>
+    <string id="30040">Codec Selection</string>
+    <string id="30041">Setup Moonlight PKG (internet connection required)</string>
+    <string id="30042">Customize Audio Settings</string>
+    <string id="30043">Enable Surround Sound</string>
     <!-- Context Menu -->
     <string id="30100">Addon Settings</string>
     <string id="30101">Full Refresh</string>
