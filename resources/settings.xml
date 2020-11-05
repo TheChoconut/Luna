@@ -24,6 +24,7 @@
         <setting label="30010" type="bool" id="enable_custom_bitrate" default="false"/>
         <setting label="30011" type="slider" id="bitrate" enable="eq(-1,true)" range="0,1,100" option="int" default="20"/>
         <setting label="30012" type="slider" id="packetsize" enable="eq(-2,true)" range="256,8,2048" option="int" default="1024"/>
+        <setting label="30044" type="bool" id="unsupported_flag" default="false"/>
         <setting label="30014" type="bool" id="graphic_optimizations" default="false"/>
         <setting label="30013" type="bool" id="remote_optimizations" default="false"/>
         <setting label="30015" type="bool" id="local_audio" default="false"/>

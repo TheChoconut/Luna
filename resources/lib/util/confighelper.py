@@ -33,13 +33,14 @@ class ConfigHelper:
         self.enable_moonlight_debug = None
         self.codec = None
         self.enable_surround_audio = None
+        self.unsupported_flag = None
 
     def _configure(self, addon_path, binary_path=None, host_ip=None, enable_custom_res=False, resolution_width=None,
                    resolution_height=None, resolution=None,
                    framerate=None, graphics_optimizations=False, remote_optimizations=False, local_audio=False,
                    enable_custom_bitrate=False, bitrate=None, packetsize=None,
                    enable_custom_input=False, override_default_resolution=False, audio_device=None, enable_moonlight_debug=False, codec=None,
-                   enable_surround_audio=False):
+                   enable_surround_audio=False, unsupported_flag=None):
 
         self.addon_path = addon_path
         self.binary_path = binary_path
@@ -61,6 +62,7 @@ class ConfigHelper:
         self.enable_moonlight_debug = enable_moonlight_debug
         self.codec = codec
         self.enable_surround_audio = enable_surround_audio
+        self.unsupported_flag = unsupported_flag
 
         self.full_path = "/storage/moonlight/" + self.conf
 
@@ -90,7 +92,8 @@ class ConfigHelper:
             'audio_device':                 self.plugin.get_setting('audio_device', str),
             'enable_moonlight_debug':       self.plugin.get_setting('enable_moonlight_debug', str),
             'codec':                        self.plugin.get_setting('codec', str),
-            'enable_surround_audio':        self.plugin.get_setting('enable_surround_audio', str)
+            'enable_surround_audio':        self.plugin.get_setting('enable_surround_audio', str),
+            'unsupported_flag':             self.plugin.get_setting('unsupported_flag', str)
         }
         self._configure(**settings)
 
@@ -161,6 +164,7 @@ class ConfigHelper:
 
         config.set('Moonlight', 'codec', self.codec)
         config.set('Moonlight', 'surround', self.enable_surround_audio)
+        config.set('Moonlight', 'unsupported', self.unsupported_flag)
 
         if config.has_option('Moonlight', 'mapping'):
             config.remove_option('Moonlight', 'mapping')

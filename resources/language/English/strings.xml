@@ -46,6 +46,7 @@
     <string id="30041">Setup Moonlight PKG (internet connection required)</string>
     <string id="30042">Customize Audio Settings</string>
     <string id="30043">Enable Surround Sound</string>
+    <string id="30044">Enable Unsupported Resolutions</string>
     <!-- Context Menu -->
     <string id="30100">Addon Settings</string>
     <string id="30101">Full Refresh</string>
