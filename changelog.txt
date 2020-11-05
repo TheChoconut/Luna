@@ -6,3 +6,5 @@ v1.6.5-alpha:
 -- Initial release of Luna mod
 v1.6.6-alpha:
 -- A few fixes integrated, and new options added to Settings (see GitHub for detailed changelog)
+v1.6.6.1-alpha:
+-- Allow unsupported resolutions
