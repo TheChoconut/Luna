@@ -16,7 +16,7 @@ class ConfigHelper:
         self.file_path = None
         self.binary_path = None
         self.host_ip = None
-        self.enable_custom_res = None
+        self.enable_custom_resolution = None
         self.resolution_width = None
         self.resolution_height = None
         self.resolution = None
@@ -35,7 +35,7 @@ class ConfigHelper:
         self.enable_surround_audio = None
         self.unsupported_flag = None
 
-    def _configure(self, addon_path, binary_path=None, host_ip=None, enable_custom_res=False, resolution_width=None,
+    def _configure(self, addon_path, binary_path=None, host_ip=None, enable_custom_resolution=False, resolution_width=None,
                    resolution_height=None, resolution=None,
                    framerate=None, graphics_optimizations=False, remote_optimizations=False, local_audio=False,
                    enable_custom_bitrate=False, bitrate=None, packetsize=None,
@@ -45,7 +45,7 @@ class ConfigHelper:
         self.addon_path = addon_path
         self.binary_path = binary_path
         self.host_ip = host_ip
-        self.enable_custom_res = enable_custom_res
+        self.enable_custom_resolution = enable_custom_resolution
         self.resolution_width = resolution_width,
         self.resolution_height = resolution_height,
         self.resolution = resolution
@@ -76,7 +76,7 @@ class ConfigHelper:
             'addon_path':                   self.plugin.storage_path,
             'binary_path':                  binary_path,
             'host_ip':                      self.plugin.get_setting('host', unicode),
-            'enable_custom_res':            self.plugin.get_setting('enable_custom_res', bool),
+            'enable_custom_resolution':     self.plugin.get_setting('enable_custom_resolution', bool),
             'resolution_width':             self.plugin.get_setting('resolution_width', str),
             'resolution_height':            self.plugin.get_setting('resolution_height', str),
             'resolution':                   self.plugin.get_setting('resolution', str),
@@ -114,27 +114,31 @@ class ConfigHelper:
         config.set('Moonlight', 'address', self.host_ip)
 
         if not self.override_default_resolution:
-		    config.set('Moonlight', 'width', 1280)
-		    config.set('Moonlight', 'height', 720)
+            config.set('Moonlight', 'width', 1280)
+            config.set('Moonlight', 'height', 720)
         
-        if self.override_default_resolution:
-            if self.resolution == '3840x2160':
-                config.set('Moonlight', 'width', 3840)
-                config.set('Moonlight', 'height', 2160)
-            if self.resolution == '2560x1440':
-                config.set('Moonlight', 'width', 2560)
-                config.set('Moonlight', 'height', 1440)
-            if self.resolution == '1920x1080':
-                config.set('Moonlight', 'width', 1920)
-                config.set('Moonlight', 'height', 1080)
-            if self.resolution == '1280x720':
-                config.set('Moonlight', 'width', 1280)
-                config.set('Moonlight', 'height', 720)
+        if self.plugin.get_setting('enable_custom_resolution', str) == 'false':
+            if self.override_default_resolution:
+                if self.resolution == '3840x2160':
+                    config.set('Moonlight', 'width', 3840)
+                    config.set('Moonlight', 'height', 2160)
+                if self.resolution == '2560x1440':
+                    config.set('Moonlight', 'width', 2560)
+                    config.set('Moonlight', 'height', 1440)
+                if self.resolution == '1920x1080':
+                    config.set('Moonlight', 'width', 1920)
+                    config.set('Moonlight', 'height', 1080)
+                if self.resolution == '1280x720':
+                    config.set('Moonlight', 'width', 1280)
+                    config.set('Moonlight', 'height', 720)
+        else:
+            config.set('Moonlight', 'width', int(self.resolution_width[0]))
+            config.set('Moonlight', 'height', int(self.resolution_height[0]))
 
         if not self.framerate:
             config.set('Moonlight', 'fps', 30)
         else:
-	        config.set('Moonlight', 'fps', self.framerate)
+            config.set('Moonlight', 'fps', self.framerate)
 
         if self.enable_custom_bitrate:
             config.set('Moonlight', 'bitrate', int(self.bitrate) * 1000)
