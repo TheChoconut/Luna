@@ -128,37 +128,45 @@ class MoonlightHelper:
 
         player = xbmc.Player()
         if player.isPlayingVideo():
-    		player.stop()
+            player.stop()
 
-        xbmc.audioSuspend()
+        if self.plugin.get_setting('last_run', str):
+            xbmc.audioSuspend()
+
+        xbmc.executebuiltin("Dialog.Close(busydialog)")
+        xbmc.executebuiltin("Dialog.Close(notification)")
 
         if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
-		    os.remove("/storage/moonlight/aml_decoder.stats")
-        os.setuid(os.getuid())
-        with open("/sys/class/video/disable_video",'w') as f:
-            f.write("0")
-        time.sleep(5)
+            os.remove("/storage/moonlight/aml_decoder.stats")
+
         p = None
-        if os.path.isfile("/storage/moonlight/zerotier.conf"):
-            # read file
-            with open("/storage/moonlight/zerotier.conf") as content_file:
-                content = content_file.read()
-                if (content == "enabled"):
-                    if os.path.isfile("/opt/bin/zerotier-one"):
-                        p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
-                    else:
-                        xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
+
+        if self.plugin.get_setting('zerotier', bool):
+            if os.path.isfile("/opt/bin/zerotier-one"):
+                p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
+            else:
+                xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
 
         self.config_helper.configure()
 
-        with open("/storage/moonlight/lastrun.txt","w") as f:
-            f.write(game_id)
-
-        sp = subprocess.Popen(["moonlight", "stream", "-app", game_id, "-logging"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+        if self.plugin.get_setting('last_run', str):
+            sp = subprocess.Popen(["moonlight", "stream", "-app", game_id, "-logging"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+        else:
+            sp = subprocess.Popen(["moonlight", "stream", "-app", game_id, "-logging", "-delay", "10"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
 
         subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
-        subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)
-        sp.wait()	
+
+        if not self.plugin.get_setting('last_run', str):
+            xbmc.Player().play('/storage/.kodi/addons/script.luna/resources/statics/loading.mp4')
+            time.sleep(8)
+            xbmc.audioSuspend()
+            time.sleep(2.5)
+            xbmc.Player().stop()
+
+        self.plugin.set_setting('last_run', game_id)
+
+        subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)	
+        sp.wait()
 
         main = "pkill -x moonlight"
         heartbeat = "pkill -x moonlight-heart"
@@ -166,9 +174,8 @@ class MoonlightHelper:
         print(os.system(heartbeat))
 
         xbmc.audioResume()
-	
+
         if not (p is None):
-            #xbmcgui.Dialog().ok('', 'ZeroTier connection closed!')
             os.killpg(os.getpgid(p.pid), signal.SIGTERM)
             p.wait()
 
@@ -176,7 +183,6 @@ class MoonlightHelper:
             with open("/storage/moonlight/aml_decoder.stats") as stat_file:
                 statistics = stat_file.read()
                 if "StreamStatus = -1" in statistics:
-                    #xbmcgui.Dialog().ok('Error', 'Stream initialisation failed...')
                     confirmed = xbmcgui.Dialog().yesno('Stream initialisation failed...', 'Try running ' + game_id + ' again?', nolabel='No', yeslabel='Yes')
                     if confirmed:
                         self.launch_game(game_id)
@@ -187,7 +193,7 @@ class MoonlightHelper:
         game_controller.refresh_games()
         del game_controller
         xbmc.executebuiltin('Container.Refresh')
-        xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, 15000, False)
+        xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, False)
 
     def list_games(self):
         return RequiredFeature('nvhttp').request().get_app_list()

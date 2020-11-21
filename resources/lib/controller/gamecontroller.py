@@ -127,11 +127,10 @@ class GameController:
 
         def context_menu(game_id):
 
-            if os.path.isfile("/storage/moonlight/lastrun.txt"):
-                with open("/storage/moonlight/lastrun.txt") as content_file:
-                    lastrun = content_file.read()
-                    if (lastrun == game.name):
-                        return [
+            if self.plugin.get_setting('last_run', str):
+                lastrun = self.plugin.get_setting('last_run', str)
+                if (lastrun == game.name):
+                    return [
                     (
                         'Game Information',
                         'XBMC.RunPlugin(%s)' % self.plugin.url_for(
@@ -154,14 +153,14 @@ class GameController:
                     (
                         self.core.string('quit_game'),
                         'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                            endpoint='quit_game_sub'
+                            endpoint='quit_game', refresh=True
                         )
                     )
                 ]
 
 
-                    else:
-                        return [
+                else:
+                    return [
                 (
                     'Game Information',
                     'XBMC.RunPlugin(%s)' % self.plugin.url_for(
@@ -216,13 +215,12 @@ class GameController:
         for i, game_name in enumerate(storage):
             game = storage.get(game_name)
             label = None
-            if os.path.isfile("/storage/moonlight/lastrun.txt"):
-                with open("/storage/moonlight/lastrun.txt") as content_file:
-                    lastrun = content_file.read()
-                    if (lastrun == game.name):
-                        label = u'[COLOR green]\u2588[/COLOR]' + u'[COLOR green]\u2588[/COLOR]' + '\n' + game.name
-                    else:
-                        label = game.name
+            if self.plugin.get_setting('last_run', str):
+                lastrun = self.plugin.get_setting('last_run', str)
+                if (lastrun == game.name):
+                    label = u'[COLOR green]\u2588[/COLOR]' + u'[COLOR green]\u2588[/COLOR]' + '\n' + game.name
+                else:
+                    label = game.name
             else:
                 label = game.name
 
