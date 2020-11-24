@@ -231,7 +231,23 @@ def get_moonlight():
         xbmcgui.Dialog().ok('', 'Moonlight deployed successfully!')
     else:
         xbmcgui.Dialog().ok('', 'Failed! Please try again...')
-    
+
+
+@plugin.route('/actions/delete-key')
+def delete_key():
+    import xbmcgui
+    import shutil
+    import time
+    if os.path.isfile("/storage/.cache/moonlight/client.p12"):
+        check = xbmcgui.Dialog().yesno('', 'Are you sure you want to clear the pairing key?', nolabel='No', yeslabel='Yes')
+        if check:
+            shutil.rmtree('/storage/.cache/moonlight')
+            time.sleep(2)
+            if not os.path.isdir("/storage/.cache/moonlight"):
+                xbmcgui.Dialog().ok('', 'Pairing key successfully removed!')
+    else:
+        xbmcgui.Dialog().ok('', 'A pairing key was not found! Nothing to do...')
+
 
 @plugin.route('/actions/patch-osmc')
 def patch_osmc_skin():
@@ -267,10 +283,15 @@ def show_games():
     import xbmcgui
     if os.path.isfile("/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf"):
         os.remove("/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf")
+
     if (check_host(plugin.get_setting('host', str)) == True):
-        game_controller = RequiredFeature('game-controller').request()
-        plugin.set_content('movies')
-        return plugin.finish(game_controller.get_games_as_list(), sort_methods=['label'])
+        if os.path.isfile("/storage/.cache/moonlight/client.p12"):
+            game_controller = RequiredFeature('game-controller').request()
+            plugin.set_content('movies')
+            return plugin.finish(game_controller.get_games_as_list(), sort_methods=['label'])
+        else:
+            xbmcgui.Dialog().ok('Pair key not found!', 'Please pair with the host before proceeding...')
+            open_settings()
     else:
         xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
@@ -322,7 +343,7 @@ def launch_game(game_id):
                 core.logger.info('Launching game %s' % game_id)
                 game_controller.launch_game(game_id)
                 del core
-                del game_controller			
+                del game_controller         
         else:
             core = RequiredFeature('core').request()
             game_controller = RequiredFeature('game-controller').request()

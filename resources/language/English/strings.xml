@@ -47,6 +47,7 @@
     <string id="30042">Customize Audio Settings</string>
     <string id="30043">Enable Surround Sound</string>
     <string id="30044">Enable Unsupported Resolutions</string>
+    <string id="30045">Delete Pairing Key</string>
     <!-- Context Menu -->
     <string id="30100">Addon Settings</string>
     <string id="30101">Full Refresh</string>

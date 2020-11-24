@@ -41,6 +41,7 @@
         <setting label="30027" visible="false" enable="eq(-3,false)" type="bool" id="enable_igdb" default="false"/>
         <setting label="30028" type="file" id="api_key_file" visible="eq(-1,true)" enable="eq(-1,true)" default=""/>
         <setting label="30022" type="action" action="XBMC.RunPlugin(plugin://script.luna/actions/reset-cache)"/>
+        <setting label="30045" type="action" action="XBMC.RunPlugin(plugin://script.luna/actions/delete-key)"/>
         <setting label="30041" type="action" action="XBMC.RunPlugin(plugin://script.luna/actions/get-moonlight)"/>
     </category>
 </settings>
