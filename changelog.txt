@@ -13,4 +13,4 @@ v1.6.6.2-alpha:
 v1.6.6.3-alpha:
 -- Add delete pair key as an option in Luna's helper. 
 v1.6.6.4-alpha:
--- Use expect_unbuffer when pairing to avoid buffered output.
+-- Periodically flush stdout whilst moonlight pairing process is still alive.
