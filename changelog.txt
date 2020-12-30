@@ -1,18 +1,18 @@
 v0.3.0-alpha:
 -- during alpha changelog won't be updated, except version number
-v1.6.4-alpha:
+v0.6.4-alpha:
 -- Modified for Kodi, resume support, quit running game, new icons and zerotier support (install via Entware)
-v1.6.5-alpha:
+v0.6.5-alpha:
 -- Initial release of Luna mod
-v1.6.6-alpha:
+v0.6.6-alpha:
 -- A few fixes integrated, and new options added to Settings (see GitHub for detailed changelog)
-v1.6.6.1-alpha:
+v0.6.6.1-alpha:
 -- Add unsupported resolutions toggle in Settings. Fixed custom resolution value not writing to config file.
-v1.6.6.2-alpha:
+v0.6.6.2-alpha:
 -- New loading animation. Cleanup duplicate code. Update the app icon. Monitor app icon change and update cache. Move some configuration files to Settings.xml.
-v1.6.6.3-alpha:
+v0.6.6.3-alpha:
 -- Add delete pair key as an option in Luna's helper. 
-v1.6.6.4-alpha:
+v0.6.6.4-alpha:
 -- Periodically flush stdout whilst moonlight pairing process is still alive.
-v1.6.6.5-alpha:
+v0.6.6.5-alpha:
 -- Start and kill the zerotier connection with the 'ZeroTier' toggle in order to pass connectivity checks.
