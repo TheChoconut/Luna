@@ -139,14 +139,6 @@ class MoonlightHelper:
         if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
             os.remove("/storage/moonlight/aml_decoder.stats")
 
-        p = None
-
-        if self.plugin.get_setting('zerotier', bool):
-            if os.path.isfile("/opt/bin/zerotier-one"):
-                p = subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
-            else:
-                xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
-
         self.config_helper.configure()
 
         if self.plugin.get_setting('last_run', str):
@@ -174,10 +166,6 @@ class MoonlightHelper:
         print(os.system(heartbeat))
 
         xbmc.audioResume()
-
-        if not (p is None):
-            os.killpg(os.getpgid(p.pid), signal.SIGTERM)
-            p.wait()
 
         if os.path.isfile("/storage/moonlight/aml_decoder.stats"):				
             with open("/storage/moonlight/aml_decoder.stats") as stat_file:
