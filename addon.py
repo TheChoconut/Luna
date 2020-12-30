@@ -140,12 +140,17 @@ def zerotier_connect():
     if not plugin.get_setting('zerotier', bool):
         confirmed = xbmcgui.Dialog().yesno('', 'Enable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
         if confirmed:
-            plugin.set_setting('zerotier', 'true')
+            if os.path.isfile("/opt/bin/zerotier-one"):
+                plugin.set_setting('zerotier', 'true')
+                subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
+            else:
+                xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
 
     elif plugin.get_setting('zerotier', bool):
         confirmed = xbmcgui.Dialog().yesno('', 'Disable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
         if confirmed:
             plugin.set_setting('zerotier', 'false')
+            subprocess.Popen(["/usr/bin/killall", "zerotier-one"], shell=False, preexec_fn=os.setsid)
 
 
 @plugin.route('/quit/<refresh>')
