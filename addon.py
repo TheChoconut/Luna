@@ -137,20 +137,25 @@ def start_running_game():
 def zerotier_connect():
     import xbmcgui
 
-    if not plugin.get_setting('zerotier', bool):
+    if process_exists('zerotier-one') == False:
         confirmed = xbmcgui.Dialog().yesno('', 'Enable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
         if confirmed:
             if os.path.isfile("/opt/bin/zerotier-one"):
-                plugin.set_setting('zerotier', 'true')
                 subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
             else:
                 xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
 
-    elif plugin.get_setting('zerotier', bool):
+    else:
         confirmed = xbmcgui.Dialog().yesno('', 'Disable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
         if confirmed:
-            plugin.set_setting('zerotier', 'false')
             subprocess.Popen(["/usr/bin/killall", "zerotier-one"], shell=False, preexec_fn=os.setsid)
+
+def process_exists(process_name):
+    progs = subprocess.check_output("ps -ef | grep " + process_name + " | grep -v grep | wc -l", shell=True)
+    if '1' in progs:
+        return True
+    else:
+        return False
 
 
 @plugin.route('/quit/<refresh>')
