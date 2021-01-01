@@ -3,7 +3,7 @@
 IFS=$'\n'
 count=0
 
-sleep 5
+sleep 10
 
 while [ `cat /sys/class/video/disable_video` -eq 1 ]; do
     echo Setting disable_video flag to zero...
