@@ -17,7 +17,7 @@ class SimplePairingManager(AbstractPairingManager):
 
     def pair(self, nvhttp, server_info, dialog):
         self.logger.info('[MoonlightHelper] - Attempting to pair host: ' + self.config_helper.host_ip)
-        pairing_proc = subprocess.Popen(["./moonlight", "pair"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, stdout=subprocess.PIPE, start_new_session=True)
+        pairing_proc = subprocess.Popen(["./moonlight", "pair"], cwd="/storage/moonlight", shell=False, stdout=subprocess.PIPE, start_new_session=True)
         lines_iterator = iter(pairing_proc.stdout.readline, b"")
 
         pairing_thread = threading.Thread(target=self.loop_lines, args=(self.logger, lines_iterator, dialog))

@@ -152,7 +152,7 @@ class ConfigHelper:
         if self.packetsize != 1024:
             config.set('Moonlight', 'packetsize', str(self.packetsize))
         else:
-            config.set('Moonlight', 'packetsize', str(1024))
+            config.set('Moonlight', 'packetsize', '1024')
 
         config.set('Moonlight', 'sops', self.graphics_optimizations)
         config.set('Moonlight', 'remote', self.remote_optimizations)

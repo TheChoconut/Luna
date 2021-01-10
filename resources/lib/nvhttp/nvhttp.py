@@ -144,11 +144,10 @@ class NvHTTP(object):
     def get_app_list(self):
         response = self.open_http_connection(self.base_url_https + '/applist?' + self.build_uid_uuid_string(), False,
                                              False)
-        print(response.status_code, response.content)
         if response.status_code in [401, 404]:
             return []
         else:
-            applist = self.get_app_list_from_string(str(response.content))
+            applist = self.get_app_list_from_string(str(response.content, "utf-8"))
 
         return applist
 
@@ -218,7 +217,7 @@ class NvHTTP(object):
         return str(uid)
 
     def re_encode_string(self, xml_string):
-        print(xml_string)
+        xml_string = str(xml_string, 'utf-8')
         logger = RequiredFeature('logger').request()
         regex = re.compile('UTF-\d{1,2}')
 
