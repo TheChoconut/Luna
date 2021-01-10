@@ -1,7 +1,7 @@
-import ConfigParser
+import configparser
 import json
 import os
-import urllib2
+from urllib.request import urlopen, build_opener
 
 try:
     import xbmcgui
@@ -46,7 +46,7 @@ class IgdbScraper(AbstractScraper):
         file_path = os.path.join(game_cache_path, game+'.json')
 
         try:
-            cp = ConfigParser.ConfigParser()
+            cp = configparser.ConfigParser()
             cp.read(self.plugin.get_setting('api_key_file', str))
             igdb_api_key = cp.get('API', 'igdb')
         except:
@@ -56,7 +56,7 @@ class IgdbScraper(AbstractScraper):
             )
             return ApiResponse()
 
-        url_opener = urllib2.build_opener()
+        url_opener = build_opener()
         url_opener.addheaders = [
             ('Accept', 'application/json'),
             ('Authorization', 'Token token=%s' % igdb_api_key)

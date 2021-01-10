@@ -1,18 +1,10 @@
-import Queue
 import os
 import subprocess
 import threading
-import pwd, os
-import linecache
-import signal
 
 from xbmcswift2 import xbmc, xbmcaddon
 
 from resources.lib.di.requiredfeature import RequiredFeature
-from resources.lib.model.inputmap import InputMap
-from resources.lib.util.inputwrapper import InputWrapper
-from resources.lib.util.stoppableinputhandler import StoppableInputHandler
-from resources.lib.util.stoppablejshandler import StoppableJSHandler
 
 def loop_lines(dialog, iterator):
     """
@@ -38,7 +30,7 @@ class MoonlightHelper:
     def create_ctrl_map(self, dialog, map_file):
         mapping_proc = subprocess.Popen(
                 ['stdbuf', '-oL', self.config_helper.get_binary(), 'map', map_file, '-input',
-                 self.plugin.get_setting('input_device', unicode)], stdout=subprocess.PIPE)
+                 self.plugin.get_setting('input_device', str)], stdout=subprocess.PIPE)
 
         lines_iterator = iter(mapping_proc.stdout.readline, b"")
 
@@ -68,8 +60,18 @@ class MoonlightHelper:
             return False
 
     def create_ctrl_map_new(self, dialog, map_file, device):
+        try:
+            import queue
+            from resources.lib.util.inputwrapper import InputWrapper
+            from resources.lib.model.inputmap import InputMap
+            from resources.lib.util.stoppableinputhandler import StoppableInputHandler
+            from resources.lib.util.stoppablejshandler import StoppableJSHandler
+        except:
+            print("Failed to initialize wanted imports...")
+            return False
+
         # TODO: Implementation detail which should be hidden?
-        input_queue = Queue.Queue()
+        input_queue = queue.Queue()
         input_map = InputMap(map_file)
         input_device = None
 
@@ -130,7 +132,9 @@ class MoonlightHelper:
         if player.isPlayingVideo():
             player.stop()
 
-        if self.plugin.get_setting('last_run', str):
+        isResumeMode = bool(self.plugin.get_setting('last_run',str))
+
+        if isResumeMode:
             xbmc.audioSuspend()
 
         xbmc.executebuiltin("Dialog.Close(busydialog)")
@@ -141,21 +145,20 @@ class MoonlightHelper:
 
         self.config_helper.configure()
 
-        if self.plugin.get_setting('last_run', str):
-            sp = subprocess.Popen(["moonlight", "stream", "-app", game_id, "-logging"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
-        else:
-            sp = subprocess.Popen(["moonlight", "stream", "-app", game_id, "-logging", "-delay", "10"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+        moonlight_args = ["./moonlight", "stream", "-app", game_id, "-logging"]
+        if not isResumeMode:
+            moonlight_args = moonlight_args + ["-delay", "10"]
+        
+        sp = subprocess.Popen(moonlight_args, cwd="/storage/moonlight", shell=False, start_new_session=True)
+        subprocess.Popen(['.' + self.internal_path + 'resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
 
-        subprocess.Popen(['/storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
-
-        if not self.plugin.get_setting('last_run', str):
-            xbmc.Player().play('/storage/.kodi/addons/script.luna/resources/statics/loading.mp4')
+        if not isResumeMode:
+            xbmc.Player().play(self.internal_path + '/resources/statics/loading.mp4')
             time.sleep(8)
             xbmc.audioSuspend()
             time.sleep(2.5)
             xbmc.Player().stop()
-
-        self.plugin.set_setting('last_run', game_id)
+            self.plugin.set_setting('last_run', game_id)
 
         subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)	
         sp.wait()
@@ -166,7 +169,6 @@ class MoonlightHelper:
         print(os.system(heartbeat))
 
         xbmc.audioResume()
-
         if os.path.isfile("/storage/moonlight/aml_decoder.stats"):				
             with open("/storage/moonlight/aml_decoder.stats") as stat_file:
                 statistics = stat_file.read()

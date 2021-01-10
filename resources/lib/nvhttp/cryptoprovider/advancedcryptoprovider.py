@@ -66,7 +66,7 @@ class AdvancedCryptoProvider(AbstractCryptoProvider):
 
         cert.save(self.cert_file, 1)
 
-        with open(self.key_file, 'wb') as key_file:
+        with open(self.key_file, 'w') as key_file:
             key_file.write(private_key.as_pem(None))
             key_file.close()
 

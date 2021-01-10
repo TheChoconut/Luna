@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 
 
 class InputMap:
@@ -52,12 +52,12 @@ class InputMap:
         setattr(self, attr, btn_no)
 
     def write(self):
-        mapping = ConfigParser.ConfigParser()
+        mapping = configparser.ConfigParser()
         print(dict(self))
         for attr, value in list(dict(self).items()):
             mapping.set('', attr, value)
 
         if self.status == self.STATUS_DONE:
-            with open(self.file_name, 'wb') as mapping_file:
+            with open(self.file_name, 'w') as mapping_file:
                 mapping.write(mapping_file)
             mapping_file.close()

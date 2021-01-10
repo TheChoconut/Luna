@@ -13,15 +13,15 @@ except ImportError:
 from .abcscraper import AbstractScraper
 from resources.lib.model.apiresponse import ApiResponse
 from resources.lib.model.fanart import Fanart
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
+#from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 
 class TgdbScraper(AbstractScraper):
     def __init__(self, plugin, core):
-	requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        #requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
         AbstractScraper.__init__(self, plugin, core)
         #self.api_url = 'https://thegamesdb.net/api/GetGame.php?name=%s'
-	self.api_url = 'https://thegamesdb.net/search.php?platform_id[]=1&name='
+        self.api_url = "https://thegamesdb.net/search.php?platform_id[]=1&name="
         self.cover_cache = self._set_up_path(os.path.join(self.base_path, 'art/poster/'))
         self.fanart_cache = self._set_up_path(os.path.join(self.base_path, 'art/fanart/'))
         self.api_cache = os.path.join(self.base_path, 'api_cache/')
@@ -77,10 +77,10 @@ class TgdbScraper(AbstractScraper):
             return ApiResponse.from_dict(**dict_response)
 
     def _get_xml_data(self, id, game):
-	if not os.path.exists("/storage/.kodi/userdata/addon_data/script.luna/.storage/api_cache/" + id):
-    		os.makedirs("/storage/.kodi/userdata/addon_data/script.luna/.storage/api_cache/" + id)
+        if not os.path.exists("/storage/.kodi/userdata/addon_data/script.luna/.storage/api_cache/" + id):
+            os.makedirs("/storage/.kodi/userdata/addon_data/script.luna/.storage/api_cache/" + id)
+        
         file_path = os.path.join(self.api_cache, id, game+'_tgdb.xml')
-
         if not os.path.isfile(file_path):
             curl = subprocess.Popen(['curl', '-XGET', self.api_url + game], stdout=subprocess.PIPE)
             with open(file_path, 'w') as response_file:

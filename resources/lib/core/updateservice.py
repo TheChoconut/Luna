@@ -1,6 +1,6 @@
 import json
 import os
-import urllib2
+from urllib.request import HTTPError, urlopen
 
 import re
 import zipfile
@@ -33,11 +33,11 @@ class UpdateService:
         if not update_storage.get('checked') or ignore_checked:
             pre_updates_enabled = self.plugin.get_setting('enable_pre_updates', bool)
             if pre_updates_enabled:
-                response = json.load(urllib2.urlopen(self.pre_api_url))
+                response = json.load(urlopen(self.pre_api_url))
             else:
                 try:
-                    response = json.load(urllib2.urlopen(self.api_url))
-                except urllib2.HTTPError as e:
+                    response = json.load(urlopen(self.api_url))
+                except HTTPError as e:
                     if e.code == 404:
                         update = None
                         response = ''
@@ -76,8 +76,8 @@ class UpdateService:
 
     def do_update(self, update):
         file_path = update.file_path
-        with open(file_path, 'wb') as asset:
-            asset.write(urllib2.urlopen(update.asset_url).read())
+        with open(file_path, 'w') as asset:
+            asset.write(urlopen(update.asset_url).read())
             asset.close()
         zip_file = zipfile.ZipFile(file_path)
         zip_file.extractall(xbmcaddon.Addon().getAddonInfo('path'), self._get_members(zip_file))

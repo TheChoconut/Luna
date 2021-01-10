@@ -69,7 +69,7 @@ class NvHTTP(object):
             else:
                 raise ValueError(e.message)
 
-        return response.content
+        return str(response.content, "utf-8")
 
     def get_computer_details(self):
         etree = self.build_etree(self.get_server_info())
@@ -144,10 +144,11 @@ class NvHTTP(object):
     def get_app_list(self):
         response = self.open_http_connection(self.base_url_https + '/applist?' + self.build_uid_uuid_string(), False,
                                              False)
+        print(response.status_code, response.content)
         if response.status_code in [401, 404]:
             return []
         else:
-            applist = self.get_app_list_from_string(response.content)
+            applist = self.get_app_list_from_string(str(response.content))
 
         return applist
 
@@ -206,37 +207,22 @@ class NvHTTP(object):
             os.makedirs(self.key_dir)
         if not os.path.isfile(uid_file):
             uid = hex(random.getrandbits(63)).rstrip("L").lstrip("0x")
-            with open(uid_file, 'wb') as f:
+            with open(uid_file, 'w') as f:
                 f.write(uid)
                 f.close()
 
         else:
-            with open(uid_file, 'rb') as f:
+            with open(uid_file, 'r') as f:
                 uid = f.read()
 
         return str(uid)
 
     def re_encode_string(self, xml_string):
+        print(xml_string)
         logger = RequiredFeature('logger').request()
         regex = re.compile('UTF-\d{1,2}')
 
         specified_encoding = regex.search(xml_string)
-
-        logger.info("Trying to decode as: %s" % 'ASCII')
-        try:
-            xml_string = xml_string.decode(encoding='ascii')
-        except UnicodeDecodeError as e:
-            logger.info("Decoding as %s failed, trying as %s" % ('ASCII', 'UTF-8'))
-            try:
-                xml_string = xml_string.decode(encoding='UTF-8')
-            except UnicodeDecodeError as e:
-                logger.info("Decoding as %s failed, trying as %s" % ('UTF-8', 'UTF-16'))
-                try:
-                    xml_string = xml_string.decode(encoding='UTF-16')
-                except UnicodeDecodeError as e:
-                    logger.error("Decoding as UTF-16 failed, this was the last attempt. Offending string follows ...")
-                    logger.error(xml_string)
-                    raise ValueError("String Decode Failed")
 
         if specified_encoding is not None:
             try:
@@ -276,7 +262,7 @@ class NvHTTP(object):
             etree = ET.fromstring(self.re_encode_string(xml_string))
         except ET.ParseError as e:
             logger = RequiredFeature('logger').request()
-            logger.error("Building ETree from XML failed: %s. Offending string follows ..." % e.message)
+            logger.error("Building ETree from XML failed: %s. Offending string follows ..." % e)
             logger.error(xml_string)
             raise ValueError("Building ETree Failed")
 

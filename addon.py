@@ -1,11 +1,6 @@
-import pwd, os
 import os
-import threading
 import subprocess
-import linecache
-import signal
 import requests
-
 from resources.lib.di.requiredfeature import RequiredFeature
 
 plugin = RequiredFeature('plugin').request()
@@ -105,7 +100,7 @@ def select_audio_device():
 def resume_game():
     import xbmcgui
     import time
-    os.setuid(os.getuid())
+    #os.setuid(os.getuid()) Seems like this line is not required?
     if (check_host(plugin.get_setting('host', str)) == True):
         if plugin.get_setting('last_run', str):
             lastrun = plugin.get_setting('last_run', str)
@@ -141,14 +136,14 @@ def zerotier_connect():
         confirmed = xbmcgui.Dialog().yesno('', 'Enable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
         if confirmed:
             if os.path.isfile("/opt/bin/zerotier-one"):
-                subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, preexec_fn=os.setsid)
+                subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, start_new_session=True)
             else:
                 xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
 
     else:
         confirmed = xbmcgui.Dialog().yesno('', 'Disable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
         if confirmed:
-            subprocess.Popen(["/usr/bin/killall", "zerotier-one"], shell=False, preexec_fn=os.setsid)
+            subprocess.Popen(["/usr/bin/killall", "zerotier-one"], shell=False, start_new_session=True)
 
 def process_exists(process_name):
     progs = subprocess.check_output("ps -ef | grep " + process_name + " | grep -v grep | wc -l", shell=True)
@@ -160,7 +155,7 @@ def process_exists(process_name):
 
 @plugin.route('/quit/<refresh>')
 def quit_game(refresh):
-    os.setuid(os.geteuid())
+    #os.setuid(os.geteuid()) Seems like this line is not required?
     import xbmcgui
     import time
     if (check_host(plugin.get_setting('host', str)) == True):
@@ -168,7 +163,7 @@ def quit_game(refresh):
             lastrun = plugin.get_setting('last_run', str)
             confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
             if confirmed:
-                subprocess.Popen(["moonlight", "quit"], cwd="/storage/moonlight", env={'LD_LIBRARY_PATH': '/storage/moonlight'}, shell=False, preexec_fn=os.setsid)
+                subprocess.Popen(["./moonlight", "quit"], cwd="/storage/moonlight", shell=False, start_new_session=True)
                 plugin.set_setting('last_run', None)
                 if refresh != 'Switch':
                     xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
@@ -297,7 +292,7 @@ def show_games():
     if (check_host(plugin.get_setting('host', str)) == True):
         if os.path.isfile("/storage/.cache/moonlight/client.p12"):
             game_controller = RequiredFeature('game-controller').request()
-            plugin.set_content('movies')
+            #plugin.set_content('movies')
             return plugin.finish(game_controller.get_games_as_list(), sort_methods=['label'])
         else:
             xbmcgui.Dialog().ok('Pair key not found!', 'Please pair with the host before proceeding...')
@@ -384,13 +379,15 @@ def launch_game_from_widget(xml_id):
     del game_controller
 
 if __name__ == '__main__':
-    core = RequiredFeature('core').request()
+    
     update_storage = plugin.get_storage('update', TTL=24*60)
     if not update_storage.get('checked'):
         updater = RequiredFeature('update-service').request()
         updater.check_for_update()
         del updater
-    core.check_script_permissions()
+        core = RequiredFeature('core').request()
+        core.check_script_permissions()
+        del core
 
     if plugin.get_setting('host', str):
         game_refresh_required = False
@@ -415,9 +412,14 @@ if __name__ == '__main__':
             os.remove("/storage/moonlight/zerotier.conf") 
 
         if os.path.isfile("/storage/moonlight/lastrun.txt"):
-            os.remove("/storage/moonlight/lastrun.txt") 
+            os.remove("/storage/moonlight/lastrun.txt")
 
-        md5 = subprocess.check_output("md5sum \"/storage/.kodi/addons/script.luna/icon.png\" | awk '{ print $1 }'", shell=True)
+
+        """ This code is not working correctly and is not required anymore.
+        try:
+            md5 = subprocess.check_output("md5sum /storage/.kodi/addons/script.luna/icon.png | awk '{ print $1 }'", shell=True)
+        except:
+            md5 = ""
 
         if not plugin.get_setting('app_icon_hash', str):
             plugin.set_setting('app_icon_hash', md5)
@@ -428,10 +430,9 @@ if __name__ == '__main__':
             if confirmed:
                 subprocess.call("sqlite3 /storage/.kodi/userdata/Database/Textures*.db \"DELETE FROM texture WHERE url = '/storage/.kodi/addons/script.luna/icon.png';\"", shell=True)
                 plugin.set_setting('app_icon_hash', md5)
-                subprocess.call('systemctl restart kodi', shell=True)
+                subprocess.call('systemctl restart kodi', shell=True)"""
         plugin.run()
         del plugin
-        del core
     else:
         import xbmcgui
         core = RequiredFeature('core').request()

@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 import os
 
 
@@ -9,7 +9,6 @@ class ConfigHelper:
         self.plugin = plugin
         self.logger = logger
         self._reset()
-        self.full_path = "/storage/moonlight/" + self.conf
         self.configure(False)
 
     def _reset(self):
@@ -64,18 +63,23 @@ class ConfigHelper:
         self.enable_surround_audio = enable_surround_audio
         self.unsupported_flag = unsupported_flag
 
-        self.full_path = "/storage/moonlight/" + self.conf
+        self.full_path = self.binary_path + '/' + self.conf
 
     def configure(self, dump=True):
         binary_path = self._find_binary()
 
         if binary_path is None:
-            raise ValueError('Moonlight binary could not be found.')
+            print('Moonlight binary could not be found.')
+            binary_path = ""
+        else:
+            binary_path = os.path.dirname(binary_path)
+
+        self.full_path = binary_path + '/' + self.conf
 
         settings = {
             'addon_path':                   self.plugin.storage_path,
             'binary_path':                  binary_path,
-            'host_ip':                      self.plugin.get_setting('host', unicode),
+            'host_ip':                      self.plugin.get_setting('host', str),
             'enable_custom_resolution':     self.plugin.get_setting('enable_custom_resolution', bool),
             'resolution_width':             self.plugin.get_setting('resolution_width', str),
             'resolution_height':            self.plugin.get_setting('resolution_height', str),
@@ -104,7 +108,7 @@ class ConfigHelper:
         """
         This dumps the currently configured helper into a file moonlight can read
         """
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(self.full_path)
 
         if 'Moonlight' not in config.sections():
@@ -114,41 +118,41 @@ class ConfigHelper:
         config.set('Moonlight', 'address', self.host_ip)
 
         if not self.override_default_resolution:
-            config.set('Moonlight', 'width', 1280)
-            config.set('Moonlight', 'height', 720)
+            config.set('Moonlight', 'width', '1280')
+            config.set('Moonlight', 'height', '720')
         
         if self.plugin.get_setting('enable_custom_resolution', str) == 'false':
             if self.override_default_resolution:
                 if self.resolution == '3840x2160':
-                    config.set('Moonlight', 'width', 3840)
-                    config.set('Moonlight', 'height', 2160)
+                    config.set('Moonlight', 'width', '3840')
+                    config.set('Moonlight', 'height', '2160')
                 if self.resolution == '2560x1440':
-                    config.set('Moonlight', 'width', 2560)
-                    config.set('Moonlight', 'height', 1440)
+                    config.set('Moonlight', 'width', '2560')
+                    config.set('Moonlight', 'height', '1440')
                 if self.resolution == '1920x1080':
-                    config.set('Moonlight', 'width', 1920)
-                    config.set('Moonlight', 'height', 1080)
+                    config.set('Moonlight', 'width', '1920')
+                    config.set('Moonlight', 'height', '1080')
                 if self.resolution == '1280x720':
-                    config.set('Moonlight', 'width', 1280)
-                    config.set('Moonlight', 'height', 720)
+                    config.set('Moonlight', 'width', '1280')
+                    config.set('Moonlight', 'height', '720')
         else:
-            config.set('Moonlight', 'width', int(self.resolution_width[0]))
-            config.set('Moonlight', 'height', int(self.resolution_height[0]))
+            config.set('Moonlight', 'width', str(self.resolution_width[0]))
+            config.set('Moonlight', 'height', str(self.resolution_height[0]))
 
         if not self.framerate:
-            config.set('Moonlight', 'fps', 30)
+            config.set('Moonlight', 'fps', '30')
         else:
-            config.set('Moonlight', 'fps', self.framerate)
+            config.set('Moonlight', 'fps', str(self.framerate))
 
         if self.enable_custom_bitrate:
-            config.set('Moonlight', 'bitrate', int(self.bitrate) * 1000)
+            config.set('Moonlight', 'bitrate', str(int(self.bitrate) * 1000))
         else:
-            config.set('Moonlight', 'bitrate', -1)
+            config.set('Moonlight', 'bitrate', '-1')
 
         if self.packetsize != 1024:
-            config.set('Moonlight', 'packetsize', self.packetsize)
+            config.set('Moonlight', 'packetsize', str(self.packetsize))
         else:
-            config.set('Moonlight', 'packetsize', 1024)
+            config.set('Moonlight', 'packetsize', str(1024))
 
         config.set('Moonlight', 'sops', self.graphics_optimizations)
         config.set('Moonlight', 'remote', self.remote_optimizations)
@@ -204,14 +208,14 @@ class ConfigHelper:
                 config.set('Input ' + str(i), 'input', device.get_evdev())
                 i += 1
 
-        with open(self.full_path, 'wb') as configfile:
+        with open(self.full_path, 'w') as configfile:
             config.write(configfile)
         configfile.close()
 
         self.logger.info('[ConfigHelper] - Dumped config to disk.')
 
     def get_binary(self):
-        cp = ConfigParser.ConfigParser()
+        cp = configparser.ConfigParser()
 
         try:
             cp.read(self.full_path)
@@ -232,7 +236,7 @@ class ConfigHelper:
             return binary_path
 
     def get_host(self):
-        cp = ConfigParser.ConfigParser()
+        cp = configparser.ConfigParser()
         cp.read(self.full_path)
         return self._config_map('Moonlight', cp)['address']
 
@@ -240,7 +244,7 @@ class ConfigHelper:
         return os.path.isfile(self.full_path)
 
     def get_section_setting(self, section, setting):
-        cp = ConfigParser.ConfigParser()
+        cp = configparser.ConfigParser()
         cp.read(self.full_path)
         return self._config_map(section, cp)[setting]
 
@@ -266,7 +270,7 @@ class ConfigHelper:
         """
 
         :param section: string
-        :type parser: ConfigParser.ConfigParser
+        :type parser: configparser.ConfigParser
         """
         dict1 = {}
         options = parser.options(section)
