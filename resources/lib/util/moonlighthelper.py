@@ -83,8 +83,8 @@ class MoonlightHelper:
         input_wrapper = InputWrapper(input_device, device.name, input_queue, input_map)
         input_wrapper.build_controller_map()
 
-        print 'num buttons: %s' % input_wrapper.num_buttons
-        print 'num_axes: %s' % input_wrapper.num_axes
+        print('num buttons: %s' % input_wrapper.num_buttons)
+        print('num_axes: %s' % input_wrapper.num_axes)
         expected_input_number = input_wrapper.num_buttons + (input_wrapper.num_axes *2)
 
         js = StoppableJSHandler(input_wrapper, input_map)

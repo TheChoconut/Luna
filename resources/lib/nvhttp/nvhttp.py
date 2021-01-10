@@ -47,7 +47,7 @@ class NvHTTP(object):
             server_info = ET.ElementTree(ET.fromstring(response.content.encode('utf-16'))).getroot()
             status_code = server_info.get('status_code')
             status_message = server_info.get('status_message')
-        except ET.ParseError, e:
+        except ET.ParseError as e:
             status_code = str(response.status_code)
             status_message = response.content
         if int(status_code) != 200:
@@ -104,7 +104,7 @@ class NvHTTP(object):
             else:
                 response = requests.get(url, timeout=(3, None), cert=(cert, key),
                                         verify=False)
-        except IOError, e:
+        except IOError as e:
             response = requests.get(url, timeout=(3, 5), verify=False)
 
         if content_only:

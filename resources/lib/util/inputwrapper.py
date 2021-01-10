@@ -113,12 +113,12 @@ class InputWrapper:
         buf = array.array('B', [0])
         ioctl(js_dev, 0x80016a11, buf)
         self.num_axes = buf[0]
-        print self.num_axes
+        print(self.num_axes)
 
         buf = array.array('B', [0])
         ioctl(js_dev, 0x80016a12, buf)
         self.num_buttons = buf[0]
-        print self.num_buttons
+        print(self.num_buttons)
 
         buf = array.array('B', [0] * 0x40)
         ioctl(js_dev, 0x80406a32, buf)

@@ -2,14 +2,13 @@ import ConfigParser
 import json
 import os
 import urllib2
-import dateutil.parser as date_parser
 
 try:
     import xbmcgui
 except ImportError:
     from xbmcswift2 import xbmcgui
 
-from abcscraper import AbstractScraper
+from .abcscraper import AbstractScraper
 from resources.lib.model.apiresponse import ApiResponse
 
 
@@ -68,7 +67,7 @@ class IgdbScraper(AbstractScraper):
             response = url_opener.open(self.api_url % query_string)
             if response.getcode() in [200, 304]:
                 search_results = json.load(url_opener.open(self.api_url % query_string))
-                print search_results
+                print(search_results)
                 if len(search_results) > 0:
                     best_match_id = search_results['games'][0]['id']
                 else:
@@ -86,7 +85,7 @@ class IgdbScraper(AbstractScraper):
         json_data = json_data['game']
 
         api_response = ApiResponse()
-        api_response.year = date_parser.parse(json_data['release_date']).year
+        #api_response.year = date_parser.parse(json_data['release_date']).year
         api_response.plot = json_data['summary'].encode('utf-8')
         for genre in json_data['genres']:
             api_response.genre.append(genre['name'].encode('utf-8'))

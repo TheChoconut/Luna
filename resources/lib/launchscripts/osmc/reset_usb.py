@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import argparse
 import subprocess
@@ -22,7 +22,7 @@ def reset_device(dev_num):
                     fd = open(sub_dir+'/devnum','r')
                     line = fd.readline()
                     if int(dev_num) == int(line):
-                            print ('Your device is at: '+sub_dir)
+                            print('Your device is at: '+sub_dir)
                             dev_found = 1
                             break
 
@@ -32,10 +32,10 @@ def reset_device(dev_num):
             reset_file = sub_dir+'/authorized'
             runbash('echo 0 > '+reset_file) 
             runbash('echo 1 > '+reset_file) 
-            print ('Device reset successful')
+            print('Device reset successful')
 
     else:
-            print ("No such device")
+            print("No such device")
 
 def main():
     parser = argparse.ArgumentParser()

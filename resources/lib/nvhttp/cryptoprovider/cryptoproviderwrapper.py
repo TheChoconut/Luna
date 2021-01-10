@@ -48,8 +48,8 @@ class CryptoProviderWrapper(AbstractCryptoProvider):
         try:
             module = importlib.import_module('resources.lib.nvhttp.cryptoprovider.advancedcryptoprovider')
             class_name = 'AdvancedCryptoProvider'
-        except ImportError, e:
-            print 'Could not load advanced crypto provider. Reason: %r' % e
+        except ImportError as e:
+            print('Could not load advanced crypto provider. Reason: %r' % e)
             module = importlib.import_module('resources.lib.nvhttp.cryptoprovider.simplecryptoprovider')
             class_name = 'SimpleCryptoProvider'
 

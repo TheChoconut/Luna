@@ -32,7 +32,7 @@ class RequiredFeature(object):
                 args = inspect.getargspec(class_.__init__)[0]
                 if args[0] == 'self':
                     args.pop(0)
-                argument_dict = dict(zip(args, feature.arguments))
+                argument_dict = dict(list(zip(args, feature.arguments)))
                 instance = class_(**argument_dict)
             else:
                 instance = class_()

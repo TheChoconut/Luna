@@ -18,8 +18,8 @@ class PairingManagerWrapper(AbstractPairingManager):
         try:
             module = importlib.import_module('resources.lib.nvhttp.pairingmanager.advancedpairingmanager')
             class_name = 'AdvancedPairingManager'
-        except ImportError, e:
-            print 'Could not load advanced pairing manager. Reason: %r' % e
+        except ImportError as e:
+            print('Could not load advanced pairing manager. Reason: %r' % e)
             module = importlib.import_module('resources.lib.nvhttp.pairingmanager.simplepairingmanager')
             class_name = 'SimplePairingManager'
 

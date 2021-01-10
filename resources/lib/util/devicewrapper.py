@@ -21,11 +21,11 @@ class DeviceWrapper:
                 if line.startswith('I:'):
                     device = InputDevice()
                 if line.startswith('N:'):
-                    print line[9:-2]
+                    print(line[9:-2])
                     name = line[9:-2]
                     for _dev in self.devices:
                         if _dev.name == name:
-                            print 'found duplicate entry'
+                            print('found duplicate entry')
                             name += ' #2'
                     device.name = name
                 if line.startswith('H:'):

@@ -283,8 +283,8 @@ def check_host(hostname):
         if request.status_code == 200:
             return True
         return False
-    except (requests.exceptions.Timeout, requests.ConnectionError), e:
-        print e
+    except (requests.exceptions.Timeout, requests.ConnectionError) as e:
+        print(e)
         return False
 
 

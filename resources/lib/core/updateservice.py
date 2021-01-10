@@ -37,7 +37,7 @@ class UpdateService:
             else:
                 try:
                     response = json.load(urllib2.urlopen(self.api_url))
-                except urllib2.HTTPError, e:
+                except urllib2.HTTPError as e:
                     if e.code == 404:
                         update = None
                         response = ''

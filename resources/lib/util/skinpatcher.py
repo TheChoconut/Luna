@@ -66,7 +66,7 @@ class SkinPatcher:
             self.patch_override()
             self.plugin.set_setting('luna_widget_patched', 'true')
         else:
-            print 'Not Supported'
+            print('Not Supported')
 
     def patch_widget(self):
         xml_root = ElementTree.ElementTree(file=os.path.join(self.base_path, self.widget)).getroot()
@@ -91,17 +91,17 @@ class SkinPatcher:
 
     def patch_home(self):
         xml_root = ElementTree.ElementTree(file=os.path.join(self.base_path, self.home)).getroot()
-        print self.plugin.get_setting('luna_force_fanart')
+        print(self.plugin.get_setting('luna_force_fanart'))
 
         controls = xml_root.find('controls')
         control_group = None
         for control in controls:
-            print control.get('type')
+            print(control.get('type'))
             if control.get('type') == 'image':
-                print "Found Image Control"
+                print("Found Image Control")
                 if self.plugin.get_setting('luna_force_fanart', bool):
                     control.find('visible').text = "True"
-                    print 'Visible Text is %s' % control.find('visible').text
+                    print('Visible Text is %s' % control.find('visible').text)
             if control.get('type') == 'group':
                 control_group = control
                 break

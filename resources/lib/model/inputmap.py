@@ -44,7 +44,7 @@ class InputMap:
         self.status = self.STATUS_PENDING
 
     def __iter__(self):
-        for attr, value in self.__dict__.iteritems():
+        for attr, value in list(self.__dict__.items()):
             if attr not in ['status', 'file_name']:
                 yield attr, value
 
@@ -53,8 +53,8 @@ class InputMap:
 
     def write(self):
         mapping = ConfigParser.ConfigParser()
-        print dict(self)
-        for attr, value in dict(self).iteritems():
+        print(dict(self))
+        for attr, value in list(dict(self).items()):
             mapping.set('', attr, value)
 
         if self.status == self.STATUS_DONE:

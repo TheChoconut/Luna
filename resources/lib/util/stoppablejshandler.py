@@ -17,7 +17,7 @@ class StoppableJSHandler(StoppableThread):
         return self._stop.isSet()
 
     def run(self):
-        print 'Opened input device %s' % self.input.device
+        print('Opened input device %s' % self.input.device)
         self.js_dev = open(self.input.device, 'rb')
         while True:
             if self.stopped():

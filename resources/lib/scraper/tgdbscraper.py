@@ -10,7 +10,7 @@ try:
 except ImportError:
     from xbmcswift2 import xbmcgui
 
-from abcscraper import AbstractScraper
+from .abcscraper import AbstractScraper
 from resources.lib.model.apiresponse import ApiResponse
 from resources.lib.model.fanart import Fanart
 from requests.packages.urllib3.exceptions import InsecureRequestWarning

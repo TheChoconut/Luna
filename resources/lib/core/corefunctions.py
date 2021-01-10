@@ -43,7 +43,7 @@ class Core:
     def check_script_permissions(self):
         st = os.stat(internal_path + '/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh')
         if not bool(st.st_mode & stat.S_IXUSR):
-            os.chmod(internal_path + '/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh', st.st_mode | 0111)
+            os.chmod(internal_path + '/resources/lib/launchscripts/osmc/moonlight-heartbeat.sh', st.st_mode | 0o111)
             self.logger.info('Changed file permissions for moonlight-heartbeat')
 
     def get_storage(self):

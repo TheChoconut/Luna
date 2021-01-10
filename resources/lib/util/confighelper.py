@@ -179,15 +179,15 @@ class ConfigHelper:
         for section in config.sections():
             if section[:-2] == 'Input':
                 config.remove_section(section)
-                print 'Removed section %s' % section
+                print('Removed section %s' % section)
 
         if self.enable_custom_input:
             input_storage = self.plugin.get_storage('input_storage')
-            print input_storage.raw_dict()
+            print(input_storage.raw_dict())
             unmapped_devices = []
             mapped_devices = []
 
-            for key, device in input_storage.iteritems():
+            for key, device in list(input_storage.items()):
                 if not device.mapping:
                     unmapped_devices.append(device)
                 else:
