@@ -136,7 +136,7 @@ class Game:
 
     def _replace_thumb(self, thumbfile, original):
         file_path = thumbfile
-        with open(file_path, 'w') as img:
+        with open(file_path, 'wb') as img:
             curl = subprocess.Popen(['curl', '-XGET', original], stdout=subprocess.PIPE)
             img.write(curl.stdout.read())
             img.close()

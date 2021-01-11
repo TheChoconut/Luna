@@ -76,7 +76,7 @@ class UpdateService:
 
     def do_update(self, update):
         file_path = update.file_path
-        with open(file_path, 'w') as asset:
+        with open(file_path, 'wb') as asset:
             asset.write(urlopen(update.asset_url).read())
             asset.close()
         zip_file = zipfile.ZipFile(file_path)

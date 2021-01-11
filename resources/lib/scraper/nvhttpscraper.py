@@ -32,7 +32,7 @@ class NvHTTPScraper(AbstractScraper):
     def _dump_image_from_data(self, base_path, id, data):
         file_path = os.path.join(base_path, id + '.png')
         if not os.path.exists(file_path):
-            with open(file_path, 'w') as img:
+            with open(file_path, 'wb') as img:
                 img.write(data)
                 img.close()
 
