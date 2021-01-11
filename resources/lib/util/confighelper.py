@@ -63,18 +63,17 @@ class ConfigHelper:
         self.enable_surround_audio = enable_surround_audio
         self.unsupported_flag = unsupported_flag
 
-        self.full_path = self.binary_path + '/' + self.conf
 
     def configure(self, dump=True):
         binary_path = self._find_binary()
 
         if binary_path is None:
-            print('Moonlight binary could not be found.')
-            binary_path = ""
+            print('Moonlight binary could not be found. Using INVALID binary_path: %s' % self.plugin.storage_path)
+            binary_path = self.plugin.storage_path
         else:
-            binary_path = os.path.dirname(binary_path)
+            binary_path = os.path.dirname(binary_path) + '/'
 
-        self.full_path = binary_path + '/' + self.conf
+        self.full_path = binary_path + self.conf
 
         settings = {
             'addon_path':                   self.plugin.storage_path,

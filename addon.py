@@ -12,63 +12,39 @@ addon_internal_path = plugin.addon.getAddonInfo('path')
 @plugin.route('/')
 def index():
     default_fanart_path = addon_internal_path + '/fanart.jpg'
-
+    
+    common_properties = { 'fanart_image': default_fanart_path }
     items = [
         {
             'label': 'Games',
             'thumbnail': addon_internal_path + '/resources/icons/controller.png',
-            'properties': {
-                    'fanart_image': default_fanart_path
-            },
-            'path': plugin.url_for(
-                        endpoint='show_games'
-                    )
+            'properties': common_properties,
+            'path': plugin.url_for(endpoint='show_games')
         }, {
             'label': 'Resume Running Game',
             'thumbnail': addon_internal_path + '/resources/icons/resume.png',
-            'properties': {
-                    'fanart_image': default_fanart_path
-            },
-            'path': plugin.url_for(
-                        endpoint='resume_game'
-                    )
+            'properties': common_properties,
+            'path': plugin.url_for(endpoint='resume_game')
         }, {
             'label': 'Quit Current Game',
             'thumbnail': addon_internal_path + '/resources/icons/quit.png',
-            'properties': {
-                    'fanart_image': default_fanart_path
-            },
-            'path': plugin.url_for(
-                        endpoint='quit_game', refresh=False
-                    )
+            'properties': common_properties,
+            'path': plugin.url_for(endpoint='quit_game', refresh=False)
         }, {
-
             'label': 'ZeroTier Connect',
             'thumbnail': addon_internal_path + '/resources/icons/zerotier.png',
-            'properties': {
-                    'fanart_image': default_fanart_path
-            },
-            'path': plugin.url_for(
-                        endpoint='zerotier_connect'
-                    )
+            'properties': common_properties,
+            'path': plugin.url_for(endpoint='zerotier_connect')
         }, {
             'label': 'Settings',
             'thumbnail': addon_internal_path + '/resources/icons/cog.png',
-            'properties': {
-                    'fanart_image': default_fanart_path
-            },
-            'path': plugin.url_for(
-                        endpoint='open_settings'
-                    )
+            'properties': common_properties,
+            'path': plugin.url_for(endpoint='open_settings')
         }, {
             'label': 'Check For Update',
             'thumbnail': addon_internal_path + '/resources/icons/update.png',
-            'properties': {
-                    'fanart_image': default_fanart_path
-            },
-            'path': plugin.url_for(
-                        endpoint='check_update'
-                    )
+            'properties': common_properties,
+            'path': plugin.url_for(endpoint='check_update')
         }
     ]
 
@@ -100,7 +76,6 @@ def select_audio_device():
 def resume_game():
     import xbmcgui
     import time
-    #os.setuid(os.getuid()) Seems like this line is not required?
     if (check_host(plugin.get_setting('host', str)) == True):
         if plugin.get_setting('last_run', str):
             lastrun = plugin.get_setting('last_run', str)
@@ -118,13 +93,10 @@ def resume_game():
             xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
 def start_running_game():
-    if plugin.get_setting('last_run', str):
-        lastrun = plugin.get_setting('last_run', str)
-        core = RequiredFeature('core').request()
+    lastrun = plugin.get_setting('last_run', str)
+    if lastrun:
         game_controller = RequiredFeature('game-controller').request()
-        core.logger.info('Resuming game %s' % lastrun)
         game_controller.launch_game(lastrun)
-        del core
         del game_controller
 
 
@@ -155,38 +127,43 @@ def process_exists(process_name):
 
 @plugin.route('/quit/<refresh>')
 def quit_game(refresh):
-    #os.setuid(os.geteuid()) Seems like this line is not required?
     import xbmcgui
-    import time
+    lastrun = plugin.get_setting('last_run', str)
     if (check_host(plugin.get_setting('host', str)) == True):
-        if plugin.get_setting('last_run', str):
-            lastrun = plugin.get_setting('last_run', str)
-            confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
-            if confirmed:
-                subprocess.Popen(["./moonlight", "quit"], cwd="/storage/moonlight", shell=False, start_new_session=True)
-                plugin.set_setting('last_run', None)
-                if refresh != 'Switch':
-                    xbmcgui.Dialog().ok('', lastrun + ' successfully closed!')
-                else:
-                    time.sleep(3)
-                main = "pkill -x moonlight"
-                print(os.system(main))
-                
-                if refresh == 'True':
-                    do_full_refresh()
-                    return 'True'
-                if refresh == 'Switch':
-                	return 'True'
+        if lastrun:
+            if moonlight_quit_game(lastrun) and refresh == 'True':
+                do_full_refresh()
+            return 'True'
         else:
-            xbmcgui.Dialog().ok('', 'Game not running! Nothing to do...')
+            xbmcgui.Dialog().ok('', 'No game running! Nothing to do...')
     else:
-        if plugin.get_setting('last_run', str):
+        if lastrun:
             cleanup = xbmcgui.Dialog().yesno('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue. \nIf you have restarted the host since your last session, you will need to remove residual data. \n\nWould you like to remove residual data now?', nolabel='No', yeslabel='Yes')
             if cleanup:
-                plugin.set_setting('last_run', '') 
+                plugin.set_setting('last_run', None)
         else:
             xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
+
+def moonlight_quit_game(lastrun):
+    """
+        Asks if user wants to quit the game. If true, calls moonlight process and sets the variable accordingly.
+        Run this function only if host is running! 
+    """
+    import xbmcgui
+    confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
+    if confirmed:
+        try:
+            subprocess.run(["./moonlight", "quit"], cwd="/storage/moonlight", timeout=10, shell=False, start_new_session=True, check=True)
+            plugin.set_setting('last_run', None)
+        except Exception as e:
+            xbmcgui.Dialog.ok('Error', 'There was an error while attempting to quit the game.\nPlease provide logs to the developers.')
+            core = RequiredFeature('core').request()
+            core.logger.error('Failed to quit moonlight game: %s' % e)
+            print(e)
+            del core
+            return False
+    return confirmed
 
 @plugin.route('/update')
 def check_update():
@@ -286,13 +263,13 @@ def check_host(hostname):
 @plugin.route('/games')
 def show_games():
     import xbmcgui
-    if os.path.isfile("/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf"):
-        os.remove("/storage/.kodi/userdata/addon_data/script.luna/.storage/luna.conf")
 
     if (check_host(plugin.get_setting('host', str)) == True):
-        if os.path.isfile("/storage/.cache/moonlight/client.p12"):
+        crypto_provider = RequiredFeature('crypto-provider').request()
+        cert_path = crypto_provider.get_cert_path()
+        del crypto_provider
+        if os.path.isfile(cert_path):
             game_controller = RequiredFeature('game-controller').request()
-            #plugin.set_content('movies')
             return plugin.finish(game_controller.get_games_as_list(), sort_methods=['label'])
         else:
             xbmcgui.Dialog().ok('Pair key not found!', 'Please pair with the host before proceeding...')
@@ -331,31 +308,13 @@ def launch_game(game_id):
     import xbmcgui
     import time
     if (check_host(plugin.get_setting('host', str)) == True):
-        if plugin.get_setting('last_run', str):
-            lastrun = plugin.get_setting('last_run', str)
-            if (lastrun != game_id):
-                result = quit_game('Switch')
-                if result == 'True':
-                    core = RequiredFeature('core').request()
-                    game_controller = RequiredFeature('game-controller').request()
-                    core.logger.info('Launching game %s' % game_id)
-                    game_controller.launch_game(game_id)
-                    del core
-                    del game_controller
-            else:
-                core = RequiredFeature('core').request()
-                game_controller = RequiredFeature('game-controller').request()
-                core.logger.info('Launching game %s' % game_id)
-                game_controller.launch_game(game_id)
-                del core
-                del game_controller         
-        else:
-            core = RequiredFeature('core').request()
-            game_controller = RequiredFeature('game-controller').request()
-            core.logger.info('Launching game %s' % game_id)
-            game_controller.launch_game(game_id)
-            del core
-            del game_controller
+        lastrun = plugin.get_setting('last_run', str)
+        
+        if lastrun and lastrun != game_id:
+            if moonlight_quit_game(lastrun) == False:
+                return
+        
+        start_game(game_id)
     else:
         if plugin.get_setting('last_run', str):
             cleanup = xbmcgui.Dialog().yesno('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue. \nIf you have restarted the host since your last session, you will need to remove residual data. \n\nWould you like to remove residual data now?', nolabel='No', yeslabel='Yes')
@@ -364,6 +323,10 @@ def launch_game(game_id):
         else:
             xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
+def start_game(game_id):
+    game_controller = RequiredFeature('game-controller').request()
+    game_controller.launch_game(game_id)
+    del game_controller
 
 @plugin.route('/games/launch-from-widget/<xml_id>')
 def launch_game_from_widget(xml_id):
@@ -380,15 +343,6 @@ def launch_game_from_widget(xml_id):
 
 if __name__ == '__main__':
     
-    update_storage = plugin.get_storage('update', TTL=24*60)
-    if not update_storage.get('checked'):
-        updater = RequiredFeature('update-service').request()
-        updater.check_for_update()
-        del updater
-        core = RequiredFeature('core').request()
-        core.check_script_permissions()
-        del core
-
     if plugin.get_setting('host', str):
         game_refresh_required = False
 
@@ -404,33 +358,6 @@ if __name__ == '__main__':
             game_controller.get_games()
             del game_controller
 
-        if os.path.isfile("/storage/moonlight/zerotier.conf"):
-            with open("/storage/moonlight/zerotier.conf") as content_file:
-                content = content_file.read()
-                if (content == "enabled"):
-                    plugin.set_setting('zerotier', 'true')
-            os.remove("/storage/moonlight/zerotier.conf") 
-
-        if os.path.isfile("/storage/moonlight/lastrun.txt"):
-            os.remove("/storage/moonlight/lastrun.txt")
-
-
-        """ This code is not working correctly and is not required anymore.
-        try:
-            md5 = subprocess.check_output("md5sum /storage/.kodi/addons/script.luna/icon.png | awk '{ print $1 }'", shell=True)
-        except:
-            md5 = ""
-
-        if not plugin.get_setting('app_icon_hash', str):
-            plugin.set_setting('app_icon_hash', md5)
-
-        if plugin.get_setting('app_icon_hash', str) != md5:
-            import xbmcgui
-            confirmed = xbmcgui.Dialog().yesno('', 'Luna icon updated. Delete icon cache and restart Kodi now?', nolabel='No', yeslabel='Yes')
-            if confirmed:
-                subprocess.call("sqlite3 /storage/.kodi/userdata/Database/Textures*.db \"DELETE FROM texture WHERE url = '/storage/.kodi/addons/script.luna/icon.png';\"", shell=True)
-                plugin.set_setting('app_icon_hash', md5)
-                subprocess.call('systemctl restart kodi', shell=True)"""
         plugin.run()
         del plugin
     else:

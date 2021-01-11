@@ -22,8 +22,7 @@ class GameController:
         if game_list is None or len(game_list) == 0:
             xbmcgui.Dialog().notification(
                 self.core.string('name'),
-                'Getting game list failed. ' +
-                'This usually means your host wasn\'t paired properly.',
+                'Getting game list failed. This usually means your host wasn\'t paired properly.',
                 '',
                 20000
             )
@@ -55,16 +54,16 @@ class GameController:
 
         i = 1
         for nvapp in game_list:
-            progress_dialog.update(bar_movement * i, 'Processing: %s' % nvapp.title, '')
+            progress_dialog.update(bar_movement * i, 'Processing: %s' % nvapp.title)
             game = Game(nvapp.title)
 
             if nvapp.id in cache:
                 if not storage.get(nvapp.id):
-                    progress_dialog.update(bar_movement * i, line2='Restoring information from cache')
+                    progress_dialog.update(bar_movement * i, 'Restoring information from cache')
                     storage[nvapp.id] = cache.get(nvapp.id)[0]
             else:
                 try:
-                    progress_dialog.update(bar_movement * i, line2='Getting Information from Local Sources')
+                    progress_dialog.update(bar_movement * i, 'Getting Information from Local Sources')
                     storage[nvapp.id] = self.scraper_chain.query_game_information(nvapp)
                 except KeyError:
                     self.logger.info(

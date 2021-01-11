@@ -1,9 +1,10 @@
 import os
 import subprocess
 import threading
+import time
+import xbmcgui
 
 from xbmcswift2 import xbmc, xbmcaddon
-
 from resources.lib.di.requiredfeature import RequiredFeature
 
 def loop_lines(dialog, iterator):
@@ -125,8 +126,6 @@ class MoonlightHelper:
         return RequiredFeature('connection-manager').request().pair(dialog)
 
     def launch_game(self, game_id):
-        import time
-        import xbmcgui
 
         player = xbmc.Player()
         if player.isPlayingVideo():
@@ -143,30 +142,27 @@ class MoonlightHelper:
         if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
             os.remove("/storage/moonlight/aml_decoder.stats")
 
-        self.config_helper.configure()
 
         moonlight_args = ["./moonlight", "stream", "-app", game_id, "-logging"]
         if not isResumeMode:
             moonlight_args = moonlight_args + ["-delay", "10"]
         
-        sp = subprocess.Popen(moonlight_args, cwd="/storage/moonlight", shell=False, start_new_session=True)
-        subprocess.Popen(['.' + self.internal_path + 'resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
+        moonlight_cmd = subprocess.Popen(moonlight_args, cwd="/storage/moonlight", shell=False, start_new_session=True)
+        subprocess.Popen([self.internal_path + 'resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
 
         if not isResumeMode:
-            xbmc.Player().play(self.internal_path + '/resources/statics/loading.mp4')
+            self.plugin.set_setting('last_run', game_id)
+            player.play(self.internal_path + '/resources/statics/loading.mp4')
             time.sleep(8)
             xbmc.audioSuspend()
             time.sleep(2.5)
-            xbmc.Player().stop()
-            self.plugin.set_setting('last_run', game_id)
+            player.stop()
+            
 
         subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)	
-        sp.wait()
+        moonlight_cmd.wait()
 
-        main = "pkill -x moonlight"
-        heartbeat = "pkill -x moonlight-heart"
-        print(os.system(main))
-        print(os.system(heartbeat))
+        os.system("pkill -x moonlight; pkill -x moonlight-heart")
 
         xbmc.audioResume()
         if os.path.isfile("/storage/moonlight/aml_decoder.stats"):				

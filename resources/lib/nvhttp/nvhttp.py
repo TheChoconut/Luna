@@ -217,7 +217,7 @@ class NvHTTP(object):
         return str(uid)
 
     def re_encode_string(self, xml_string):
-        xml_string = str(xml_string, 'utf-8')
+        xml_string = str(xml_string, 'utf-8') if type(xml_string) == 'bytes' else xml_string
         logger = RequiredFeature('logger').request()
         regex = re.compile('UTF-\d{1,2}')
 
