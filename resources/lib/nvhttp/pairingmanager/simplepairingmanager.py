@@ -17,17 +17,14 @@ class SimplePairingManager(AbstractPairingManager):
 
     def pair(self, nvhttp, server_info, dialog):
         self.logger.info('[MoonlightHelper] - Attempting to pair host: ' + self.config_helper.host_ip)
-        pairing_proc = subprocess.Popen(["./moonlight", "pair"], cwd="/storage/moonlight", shell=False, stdout=subprocess.PIPE, start_new_session=True)
-        lines_iterator = iter(pairing_proc.stdout.readline, b"")
+        pairing_proc = subprocess.Popen(["./moonlight", "pair"], cwd="/storage/moonlight", encoding='utf-8', shell=False, stdout=subprocess.PIPE)
+        lines_iterator = iter(pairing_proc.stdout.readline, "")
 
         pairing_thread = threading.Thread(target=self.loop_lines, args=(self.logger, lines_iterator, dialog))
         pairing_thread.start()
 
-        while True:
+        while pairing_proc.poll() is None:
             xbmc.sleep(1000)
-            sys.stdout.flush()
-            if not pairing_thread.isAlive():
-                break
 
         new_server_info = nvhttp.get_server_info()
         if self.get_pair_state(nvhttp, new_server_info) == self.STATE_PAIRED:
@@ -41,7 +38,9 @@ class SimplePairingManager(AbstractPairingManager):
     def loop_lines(self, logger, iterator, dialog):
         pin_regex = r'^Please enter the following PIN on the target PC: (\d{4})'
         for line in iterator:
+            if line.strip() == "":
+                break
             match = re.match(pin_regex, line)
             if match:
                 self.update_dialog(match.group(1), dialog)
-            logger.info(line)
+                break

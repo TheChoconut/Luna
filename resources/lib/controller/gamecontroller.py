@@ -65,11 +65,11 @@ class GameController:
                 try:
                     progress_dialog.update(bar_movement * i, 'Getting Information from Local Sources')
                     storage[nvapp.id] = self.scraper_chain.query_game_information(nvapp)
-                except KeyError:
+                except KeyError as e:
                     self.logger.info(
                         'Key Error thrown while getting information for game {0}: {1}'
                         .format(nvapp.title,
-                                KeyError.message))
+                                str(e)))
                     storage[nvapp.id] = game
             i += 1
 
@@ -103,11 +103,11 @@ class GameController:
             else:
                 try:
                     storage[nvapp.id] = self.scraper_chain.query_game_information(nvapp)
-                except KeyError:
+                except KeyError as e:
                     self.logger.info(
                         'Key Error thrown while getting information for game {0}: {1}'
                         .format(nvapp.title,
-                                KeyError.message))
+                                str(e)))
                     storage[nvapp.id] = game
             i += 1
 

@@ -44,7 +44,7 @@ class NvHTTP(object):
     @staticmethod
     def verify_response_status(response):
         try:
-            server_info = ET.ElementTree(ET.fromstring(response.content.encode('utf-16'))).getroot()
+            server_info = ET.ElementTree(ET.fromstring(str(response.content, 'utf-8').encode('utf-16'))).getroot()
             status_code = server_info.get('status_code')
             status_message = server_info.get('status_message')
         except ET.ParseError as e:
@@ -63,11 +63,12 @@ class NvHTTP(object):
         except (AssertionError, IOError) as e:
             # Looks like GEN7 Servers are sending 404 instead of 401 if client is not authorized
             # GFE 2.11.3.5 returns 200 on my machine, only the response body has the right status code
-            if response.status_code in [401, 404] or e.message.startswith('401'):
+            
+            if response.status_code in [401, 404] or str(e).startswith('401'):
                 response = self.open_http_connection(
                     self.base_url_http + '/serverinfo?' + self.build_uid_uuid_string(), True, False)
             else:
-                raise ValueError(e.message)
+                raise ValueError(e)
 
         return str(response.content, "utf-8")
 

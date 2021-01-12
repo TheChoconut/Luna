@@ -13,7 +13,7 @@ class AudioController(object):
     def select_audio_device(self):
         device_list = [dev.name for dev in self.audio_manager.devices]
 
-        for line in subprocess.check_output('aplay -l | grep card', shell=True).split('\n'):
+        for line in subprocess.check_output('aplay -l | grep card', encoding="utf-8", shell=True).split('\n'):
             if line.strip():
                 device_list.append(line)
 

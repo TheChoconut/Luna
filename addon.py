@@ -265,10 +265,7 @@ def show_games():
     import xbmcgui
 
     if (check_host(plugin.get_setting('host', str)) == True):
-        crypto_provider = RequiredFeature('crypto-provider').request()
-        cert_path = crypto_provider.get_cert_path()
-        del crypto_provider
-        if os.path.isfile(cert_path):
+        if os.path.isfile('/storage/.cache/moonlight/client.p12'):
             game_controller = RequiredFeature('game-controller').request()
             return plugin.finish(game_controller.get_games_as_list(), sort_methods=['label'])
         else:
@@ -371,9 +368,5 @@ if __name__ == '__main__':
         if not os.path.isfile("/storage/moonlight/moonlight"):
             confirmed = xbmcgui.Dialog().yesno('', 'Moonlight not detected! Would you like to download/setup the package now?', nolabel='No', yeslabel='Yes')
             if confirmed:
-                subprocess.call('wget https://gist.githubusercontent.com/TheChoconut/fe550f8c19c11f71a85841f135eddecb/raw/ -qO - | bash', shell=True)
-                if os.path.isfile("/storage/moonlight/moonlight"):
-                    xbmcgui.Dialog().ok('', 'Moonlight deployed successfully!')
-                else:
-                    xbmcgui.Dialog().ok('', 'Failed! Please try again...')
+                get_moonlight()
         open_settings()
