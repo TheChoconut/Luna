@@ -359,10 +359,7 @@ if __name__ == '__main__':
     else:
         import xbmcgui
         core = RequiredFeature('core').request()
-        xbmcgui.Dialog().ok(
-                core.string('name'),
-                core.string('configure_first')
-        )
+        xbmcgui.Dialog().ok(core.string('name'), core.string('configure_first'))
         del core
         if not os.path.isfile("/storage/moonlight/moonlight"):
             confirmed = xbmcgui.Dialog().yesno('', 'Moonlight not detected! Would you like to download/setup the package now?', nolabel='No', yeslabel='Yes')

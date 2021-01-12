@@ -10,7 +10,6 @@
   <extension point="xbmc.python.pluginsource" library="addon.py">
     <provides>executable</provides>
   </extension>
-  <extension point="xbmc.service" library="service.py"/>
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
     <language>en</language>
