@@ -16,3 +16,5 @@ v0.6.6.4-alpha:
 -- Periodically flush stdout whilst moonlight pairing process is still alive.
 v0.6.6.5-alpha:
 -- Start and kill the zerotier connection with the 'ZeroTier' toggle in order to pass connectivity checks.
+v0.7.0.0-alpha-matrix:
+-- Initial support for Kodi v19 (Matrix). Basic functions have been converted to python3. Removed optional code and number of operations for faster load times.
