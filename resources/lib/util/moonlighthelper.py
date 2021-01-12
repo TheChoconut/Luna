@@ -175,10 +175,6 @@ class MoonlightHelper:
                 else:
                     xbmcgui.Dialog().ok('Stream statistics', statistics)
 
-        game_controller = RequiredFeature('game-controller').request()
-        game_controller.refresh_games()
-        del game_controller
-        xbmc.executebuiltin('Container.Refresh')
         xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, False)
 
     def list_games(self):

@@ -133,7 +133,6 @@ def quit_game(refresh):
         if lastrun:
             if moonlight_quit_game(lastrun) and refresh == 'True':
                 do_full_refresh()
-            return 'True'
         else:
             xbmcgui.Dialog().ok('', 'No game running! Nothing to do...')
     else:
