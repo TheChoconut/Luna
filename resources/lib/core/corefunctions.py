@@ -22,8 +22,6 @@ STRINGS = {
     'configure_first':     30207,
     'reset_cache_warning': 30208,
     'empty_game_list':     30209,
-    'update_available':    30210,
-    'no_update_available': 30211,
     'scraper_failed':      30212,
 }
 
@@ -42,7 +40,4 @@ class Core:
 
     def get_storage(self):
         return self.plugin.get_storage('game_storage')
-
-    def get_active_skin(self):
-        userdata_folder = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(self.plugin.storage_path))))
 

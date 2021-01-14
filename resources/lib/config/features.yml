@@ -65,23 +65,6 @@
     - '@logger'
 
 --- !component
-  name: update-service
-  module: resources.lib.core.updateservice
-  class_name: UpdateService
-  arguments:
-    - '@plugin'
-    - '@core'
-    - '@logger'
-
---- !component
-  name: skin-patcher
-  module: resources.lib.util.skinpatcher
-  class_name: SkinPatcher
-  arguments:
-    - '@core'
-    - '@plugin'
-
---- !component
   name: device-wrapper
   module: resources.lib.util.devicewrapper
   class_name: DeviceWrapper

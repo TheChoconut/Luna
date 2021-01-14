@@ -58,15 +58,6 @@ def open_settings():
     core_monitor.onSettingsChanged()
     del core_monitor
 
-
-@plugin.route('/settings/select-input')
-def select_input_devices():
-    from resources.lib.views.selectinput import SelectInput
-    window = SelectInput('Select Input Devices')
-    window.doModal()
-    del window
-
-
 @plugin.route('/settings/select-audio')
 def select_audio_device():
     audio_controller = RequiredFeature('audio-controller').request()
@@ -164,14 +155,6 @@ def moonlight_quit_game(lastrun):
             return False
     return confirmed
 
-@plugin.route('/update')
-def check_update():
-    updater = RequiredFeature('update-service').request()
-    update = updater.check_for_update(True)
-    if update is not None:
-        updater.initiate_update(update)
-
-
 @plugin.route('/actions/create-mapping')
 def create_mapping():
     config_controller = RequiredFeature('config-controller').request()
@@ -229,25 +212,6 @@ def delete_key():
     else:
         xbmcgui.Dialog().ok('', 'A pairing key was not found! Nothing to do...')
 
-
-@plugin.route('/actions/patch-osmc')
-def patch_osmc_skin():
-    skinpatcher = RequiredFeature('skin-patcher').request()
-    skinpatcher.patch()
-    del skinpatcher
-    import xbmc
-    xbmc.executebuiltin('ReloadSkin')
-
-
-@plugin.route('/actions/rollback-osmc')
-def rollback_osmc_skin():
-    import xbmc
-    skinpatcher = RequiredFeature('skin-patcher').request()
-    skinpatcher.rollback()
-    del skinpatcher
-    xbmc.executebuiltin('ReloadSkin')
-
-
 def check_host(hostname):
     try:
         request = requests.get("http://" + hostname + ":47989/serverinfo?", timeout=10)
@@ -280,24 +244,6 @@ def do_full_refresh():
     game_controller.get_games()
     del game_controller
     xbmc.executebuiltin('Container.Refresh')
-
-
-@plugin.route('/games/info/<game_id>')
-def show_game_info(game_id):
-    from resources.lib.views.gameinfo import GameInfo
-    core = RequiredFeature('core').request()
-    game = core.get_storage().get(game_id)
-    cache_fanart = game.get_selected_fanart()
-    cache_poster = game.get_selected_poster()
-    window = GameInfo(game, game.name)
-    window.doModal()
-    del window
-    if cache_fanart != game.get_selected_fanart() or cache_poster != game.get_selected_poster():
-        import xbmc
-        xbmc.executebuiltin('Container.Refresh')
-    del core
-    del game
-
 
 @plugin.route('/games/launch/<game_id>')
 def launch_game(game_id):

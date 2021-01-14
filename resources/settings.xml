@@ -21,7 +21,7 @@
     </category>
     <category label="30016">
         <setting label="30017" type="bool" id="enable_custom_input" default="false"/>
-        <setting label="30034" type="action" enable="eq(-1,true)" action="RunPlugin(plugin://script.luna/settings/select-input)"/>
+        <!--<setting label="30034" type="action" enable="eq(-1,true)" action="RunPlugin(plugin://script.luna/settings/select-input)"/> select-input is broken-->
     </category>
     <category label="30009">
         <setting label="30010" type="bool" id="enable_custom_bitrate" default="false"/>
@@ -32,7 +32,6 @@
         <setting label="30013" type="bool" id="remote_optimizations" default="false"/>
         <setting label="30015" type="bool" id="local_audio" default="false"/>
         <setting label="30038" type="bool" id="enable_moonlight_debug" default="false"/>
-        <setting label="30035" type="bool" id="enable_pre_updates" default="false"/>
     </category>
     <category label="30021">
         <setting label="30024" visible="false" type="bool" id="disable_scraper" default="true"/>
