@@ -27,7 +27,7 @@ class FeatureBroker:
             features_path = 'resources/lib/config/features.yml'
 
         with open(features_path) as config:
-            features = yaml.load_all(config)
+            features = yaml.load_all(config, Loader=yaml.UnsafeLoader)
             for feature in features:
                 self._provide(feature)
                 if hasattr(feature, 'tags'):

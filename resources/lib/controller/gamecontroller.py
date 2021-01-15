@@ -125,85 +125,25 @@ class GameController:
         """
 
         def context_menu(game_id):
+            default_context_menu = [
+                (
+                    self.core.string('addon_settings'),
+                    'RunPlugin(%s)' % self.plugin.url_for(endpoint='open_settings')
+                ),
+                (
+                    self.core.string('full_refresh'),
+                    'RunPlugin(%s)' % self.plugin.url_for(endpoint='do_full_refresh')
+                )
+                ]
 
             if self.plugin.get_setting('last_run', str):
                 lastrun = self.plugin.get_setting('last_run', str)
-                if (lastrun == game.name):
-                    return [
-                    (
-                        'Game Information',
-                        'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                            endpoint='show_game_info',
-                            game_id=game_id
-                        )
-                    ),
-                    (
-                        self.core.string('addon_settings'),
-                        'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                            endpoint='open_settings'
-                        )
-                    ),
-                    (
-                        self.core.string('full_refresh'),
-                        'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                            endpoint='do_full_refresh'
-                        )
-                    ),
-                    (
+                if (lastrun == game.name.decode('utf-8')):
+                    return default_context_menu + [(
                         self.core.string('quit_game'),
-                        'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                            endpoint='quit_game', refresh=True
-                        )
-                    )
-                ]
-
-
-                else:
-                    return [
-                (
-                    'Game Information',
-                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                        endpoint='show_game_info',
-                        game_id=game_id
-                    )
-                ),
-                (
-                    self.core.string('addon_settings'),
-                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                        endpoint='open_settings'
-                    )
-                ),
-                (
-                    self.core.string('full_refresh'),
-                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                        endpoint='do_full_refresh'
-                    )
-                )
-            ]
-
-
-            else:
-                return [
-                (
-                    'Game Information',
-                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                        endpoint='show_game_info',
-                        game_id=game_id
-                    )
-                ),
-                (
-                    self.core.string('addon_settings'),
-                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                        endpoint='open_settings'
-                    )
-                ),
-                (
-                    self.core.string('full_refresh'),
-                    'XBMC.RunPlugin(%s)' % self.plugin.url_for(
-                        endpoint='do_full_refresh'
-                    )
-                )
-            ]
+                        'RunPlugin(%s)' % self.plugin.url_for(endpoint='quit_game', refresh=True)
+                    )]
+            return default_context_menu
 
         storage = self.core.get_storage()
 
@@ -213,15 +153,11 @@ class GameController:
         items = []
         for i, game_name in enumerate(storage):
             game = storage.get(game_name)
-            label = None
+            label = game.name
             if self.plugin.get_setting('last_run', str):
                 lastrun = self.plugin.get_setting('last_run', str)
-                if (lastrun == game.name):
-                    label = u'[COLOR green]\u2588[/COLOR]' + u'[COLOR green]\u2588[/COLOR]' + '\n' + game.name
-                else:
-                    label = game.name
-            else:
-                label = game.name
+                if (lastrun == game.name.decode('utf-8')):
+                    label = '[B][COLOR green]' + game.name.decode('utf-8') + '[/COLOR][/B]'
 
             items.append({
                 'label': label,

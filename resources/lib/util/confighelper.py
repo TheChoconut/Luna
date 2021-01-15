@@ -1,5 +1,6 @@
 import configparser
 import os
+import xbmcaddon
 
 
 class ConfigHelper:
@@ -7,6 +8,7 @@ class ConfigHelper:
 
     def __init__(self, plugin, logger):
         self.plugin = plugin
+        self.internal_path = xbmcaddon.Addon().getAddonInfo('path')
         self.logger = logger
         self._reset()
         self.configure(False)
@@ -65,15 +67,13 @@ class ConfigHelper:
 
 
     def configure(self, dump=True):
-        binary_path = self._find_binary()
+        binary_path = self._find_binary(self.internal_path)
 
         if binary_path is None:
-            print('Moonlight binary could not be found. Using INVALID binary_path: %s' % self.plugin.storage_path)
-            binary_path = self.plugin.storage_path
+            print('Moonlight binary could not be found. Configuration file saved at %s' % self.plugin.storage_path)
+            self.full_path = self.plugin.storage_path + self.conf
         else:
-            binary_path = os.path.dirname(binary_path) + '/'
-
-        self.full_path = binary_path + self.conf
+            self.full_path = binary_path + self.conf
 
         settings = {
             'addon_path':                   self.plugin.storage_path,
@@ -113,7 +113,7 @@ class ConfigHelper:
         if 'Moonlight' not in config.sections():
             config.add_section('Moonlight')
 
-        config.set('Moonlight', 'binpath', self.binary_path)
+        config.set('Moonlight', 'binpath', "" if self.binary_path is None else self.binary_path)
         config.set('Moonlight', 'address', self.host_ip)
 
         if not self.override_default_resolution:
@@ -251,16 +251,17 @@ class ConfigHelper:
         return self.full_path
 
     @staticmethod
-    def _find_binary():
+    def _find_binary(internal_path):
         binary_locations = [
             '/usr/bin/moonlight',
             '/usr/local/bin/moonlight',
-            '/storage/moonlight/moonlight'
+            '/storage/moonlight/moonlight',
+            os.path.join(internal_path, 'resources', 'bin', 'moonlight')
         ]
 
         for f in binary_locations:
             if os.path.isfile(f):
-                return f
+                return os.path.dirname(f) + '/'
 
         return None
 

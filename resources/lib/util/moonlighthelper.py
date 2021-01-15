@@ -2,9 +2,8 @@ import os
 import subprocess
 import threading
 import time
-import xbmcgui
 
-from xbmcswift2 import xbmc, xbmcaddon
+from xbmcswift2 import xbmc, xbmcaddon, xbmcgui
 from resources.lib.di.requiredfeature import RequiredFeature
 
 def loop_lines(dialog, iterator):
@@ -30,7 +29,7 @@ class MoonlightHelper:
 
     def create_ctrl_map(self, dialog, map_file):
         mapping_proc = subprocess.Popen(
-                ['stdbuf', '-oL', self.config_helper.get_binary(), 'map', map_file, '-input',
+                [self.config_helper.get_binary(), 'map', map_file, '-input',
                  self.plugin.get_setting('input_device', str)], stdout=subprocess.PIPE)
 
         lines_iterator = iter(mapping_proc.stdout.readline, b"")
@@ -115,67 +114,75 @@ class MoonlightHelper:
                 dialog.close()
                 break
 
-        if os.path.isfile(map_file) and success:
-
-            return True
-        else:
-
-            return False
+        return os.path.isfile(map_file) and success
 
     def pair_host(self, dialog):
         return RequiredFeature('connection-manager').request().pair(dialog)
 
+    def launch_game_thread(self, isResumeMode, binary_path, game_id):
+        player = xbmc.Player()
+        launchscript_cwd = self.internal_path + 'resources/lib/launchscripts/linux/'
+        moonlight_args = [binary_path + "moonlight", "stream", "-app", game_id, "-logging"]
+        if not isResumeMode:
+            moonlight_args = moonlight_args + ["-delay", "10"]
+
+        try:
+            moonlight_cmd = subprocess.Popen(moonlight_args, shell=False, start_new_session=True)
+            subprocess.Popen([launchscript_cwd + 'moonlight-heartbeat.sh'], cwd=launchscript_cwd, shell=False)
+
+            if not isResumeMode:
+                self.plugin.set_setting('last_run', game_id)
+                player.play(self.internal_path + '/resources/statics/loading.mp4')
+                time.sleep(8)
+                xbmc.audioSuspend()
+                time.sleep(2.5)
+                player.stop()
+
+            subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)	
+            moonlight_cmd.wait()
+
+            os.system("pkill -x moonlight; pkill -x moonlight-heart")
+            xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, False)
+        except Exception as e:
+            print("Failed to execute moonlight process.")
+            print(e)
+        finally:
+            xbmc.audioResume()
+            xbmc.executebuiltin("InhibitScreensaver(false)")
+            if os.path.isfile(binary_path + "aml_decoder.stats"):				
+                with open(binary_path + "aml_decoder.stats") as stat_file:
+                    statistics = stat_file.read()
+                    if "StreamStatus = -1" in statistics:
+                        confirmed = xbmcgui.Dialog().yesno('Stream initialisation failed...', 'Try running ' + game_id + ' again?', nolabel='No', yeslabel='Yes')
+                        if confirmed:
+                            self.launch_game(game_id)
+                    else:
+                        xbmcgui.Dialog().ok('Stream statistics', statistics)
+
     def launch_game(self, game_id):
+
+        binary_path = self.config_helper.binary_path
+        if binary_path is None:
+            xbmcgui.Dialog().ok("Missing binaries", "Couldn\'t detect moonlight binary.\r\nPlease check your setup.")
+            return
 
         player = xbmc.Player()
         if player.isPlayingVideo():
             player.stop()
 
         isResumeMode = bool(self.plugin.get_setting('last_run',str))
-
         if isResumeMode:
             xbmc.audioSuspend()
 
         xbmc.executebuiltin("Dialog.Close(busydialog)")
         xbmc.executebuiltin("Dialog.Close(notification)")
+        xbmc.executebuiltin("InhibitScreensaver(true)")
 
-        if os.path.isfile("/storage/moonlight/aml_decoder.stats"):
-            os.remove("/storage/moonlight/aml_decoder.stats")
+        if os.path.isfile(binary_path + "aml_decoder.stats"):
+            os.remove(binary_path + "aml_decoder.stats")
 
-
-        moonlight_args = ["./moonlight", "stream", "-app", game_id, "-logging"]
-        if not isResumeMode:
-            moonlight_args = moonlight_args + ["-delay", "10"]
-        
-        moonlight_cmd = subprocess.Popen(moonlight_args, cwd="/storage/moonlight", shell=False, start_new_session=True)
-        subprocess.Popen([self.internal_path + 'resources/lib/launchscripts/osmc/moonlight-heartbeat.sh'], shell=False)
-
-        if not isResumeMode:
-            self.plugin.set_setting('last_run', game_id)
-            player.play(self.internal_path + '/resources/statics/loading.mp4')
-            time.sleep(8)
-            xbmc.audioSuspend()
-            time.sleep(2.5)
-            player.stop()
-            
-
-        subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)	
-        moonlight_cmd.wait()
-
-        os.system("pkill -x moonlight; pkill -x moonlight-heart")
-
-        xbmc.audioResume()
-        if os.path.isfile("/storage/moonlight/aml_decoder.stats"):				
-            with open("/storage/moonlight/aml_decoder.stats") as stat_file:
-                statistics = stat_file.read()
-                if "StreamStatus = -1" in statistics:
-                    confirmed = xbmcgui.Dialog().yesno('Stream initialisation failed...', 'Try running ' + game_id + ' again?', nolabel='No', yeslabel='Yes')
-                    if confirmed:
-                        self.launch_game(game_id)
-                else:
-                    xbmcgui.Dialog().ok('Stream statistics', statistics)
-
-        xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, False)
+        launch_thread = threading.Thread(target=self.launch_game_thread, args=(isResumeMode, binary_path, game_id))
+        launch_thread.start()
 
     def list_games(self):
         return RequiredFeature('nvhttp').request().get_app_list()

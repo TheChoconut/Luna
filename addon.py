@@ -9,12 +9,43 @@ addon_path = plugin.storage_path
 addon_internal_path = plugin.addon.getAddonInfo('path')
 
 
-@plugin.route('/')
+@plugin.cached_route('/')
 def index():
+    if plugin.get_setting('host', str):
+        game_refresh_required = False
+        try:
+            from resources.lib.model.game import Game
+            if plugin.get_storage('game_version')['version'] != Game.version:
+                game_refresh_required = True
+        except KeyError:
+            game_refresh_required = True
+
+        if game_refresh_required:
+            game_controller = RequiredFeature('game-controller').request()
+            game_controller.get_games()
+            del game_controller
+        
+        return main_route()
+    else:
+        no_host_detected()
+
+def no_host_detected():
+    import xbmcgui
+    core = RequiredFeature('core').request()
+    xbmcgui.Dialog().ok(core.string('name'), core.string('configure_first'))
+    del core
+    binary_path = RequiredFeature('config-helper').request().binary_path
+    if binary_path is None:
+        confirmed = xbmcgui.Dialog().yesno('', 'Moonlight not detected! Would you like to download/setup the package now?', nolabel='No', yeslabel='Yes')
+        if confirmed:
+            get_moonlight()
+    open_settings()
+
+@plugin.cached()
+def main_route():
     default_fanart_path = addon_internal_path + '/fanart.jpg'
-    
     common_properties = { 'fanart_image': default_fanart_path }
-    items = [
+    return [
         {
             'label': 'Games',
             'thumbnail': addon_internal_path + '/resources/icons/controller.png',
@@ -40,16 +71,8 @@ def index():
             'thumbnail': addon_internal_path + '/resources/icons/cog.png',
             'properties': common_properties,
             'path': plugin.url_for(endpoint='open_settings')
-        }, {
-            'label': 'Check For Update',
-            'thumbnail': addon_internal_path + '/resources/icons/update.png',
-            'properties': common_properties,
-            'path': plugin.url_for(endpoint='check_update')
         }
     ]
-
-    return plugin.finish(items)
-
 
 @plugin.route('/settings')
 def open_settings():
@@ -95,18 +118,17 @@ def start_running_game():
 def zerotier_connect():
     import xbmcgui
 
-    if process_exists('zerotier-one') == False:
+    if process_exists('zerotier-one'):
+        confirmed = xbmcgui.Dialog().yesno('', 'Disable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
+        if confirmed:
+            subprocess.Popen(["/usr/bin/killall", "zerotier-one"], shell=False, start_new_session=True)
+    else:
         confirmed = xbmcgui.Dialog().yesno('', 'Enable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
         if confirmed:
             if os.path.isfile("/opt/bin/zerotier-one"):
                 subprocess.Popen(["/opt/bin/zerotier-one", "-d"], shell=False, start_new_session=True)
             else:
                 xbmcgui.Dialog().ok('', 'Missing ZeroTier binaries... Installation is required via Entware!')
-
-    else:
-        confirmed = xbmcgui.Dialog().yesno('', 'Disable ZeroTier Connection?', nolabel='No', yeslabel='Yes', autoclose=5000)
-        if confirmed:
-            subprocess.Popen(["/usr/bin/killall", "zerotier-one"], shell=False, start_new_session=True)
 
 def process_exists(process_name):
     progs = subprocess.check_output("ps -ef | grep " + process_name + " | grep -v grep | wc -l", shell=True)
@@ -125,7 +147,7 @@ def quit_game(refresh):
             if moonlight_quit_game(lastrun) and refresh == 'True':
                 do_full_refresh()
         else:
-            xbmcgui.Dialog().ok('', 'No game running! Nothing to do...')
+            xbmcgui.Dialog().ok('No game running', 'This client doesn\'t have any running games on host.')
     else:
         if lastrun:
             cleanup = xbmcgui.Dialog().yesno('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue. \nIf you have restarted the host since your last session, you will need to remove residual data. \n\nWould you like to remove residual data now?', nolabel='No', yeslabel='Yes')
@@ -134,20 +156,20 @@ def quit_game(refresh):
         else:
             xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
-
 def moonlight_quit_game(lastrun):
     """
         Asks if user wants to quit the game. If true, calls moonlight process and sets the variable accordingly.
         Run this function only if host is running! 
     """
     import xbmcgui
+    binary_path = RequiredFeature('config-helper').request().binary_path
     confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
     if confirmed:
         try:
-            subprocess.run(["./moonlight", "quit"], cwd="/storage/moonlight", timeout=10, shell=False, start_new_session=True, check=True)
+            subprocess.run([binary_path + "moonlight", "quit"], timeout=10, shell=False, start_new_session=True, check=True)
             plugin.set_setting('last_run', None)
         except Exception as e:
-            xbmcgui.Dialog.ok('Error', 'There was an error while attempting to quit the game.\nPlease provide logs to the developers.')
+            xbmcgui.Dialog().ok('Error', 'There was an error while attempting to quit the game.\nPlease provide logs to the developers.')
             core = RequiredFeature('core').request()
             core.logger.error('Failed to quit moonlight game: %s' % e)
             print(e)
@@ -175,39 +197,42 @@ def reset_cache():
         plugin.set_setting('last_run', '')
     core = RequiredFeature('core').request()
     confirmed = xbmcgui.Dialog().yesno(
-            core.string('name'),
-            core.string('reset_cache_warning')
+        core.string('name'),
+        core.string('reset_cache_warning')
     )
-
+    del core
     if confirmed:
         scraper_chain = RequiredFeature('scraper-chain').request()
         scraper_chain.reset_cache()
         del scraper_chain
-
-    del core
 
 @plugin.route('/actions/get-moonlight')
 def get_moonlight():
     import xbmcgui
     xbmcgui.Dialog().notification('Moonlight Updater', 'Grabbing latest Moonlight package...')
     subprocess.call('wget https://gist.githubusercontent.com/TheChoconut/fe550f8c19c11f71a85841f135eddecb/raw/ -qO - | bash', shell=True)
-    if os.path.isfile("/storage/moonlight/moonlight"):
+    config_helper = RequiredFeature('config-helper').request()
+    config_helper.configure()
+    binary_path = config_helper.binary_path
+    del config_helper
+    if binary_path is not None:
         xbmcgui.Dialog().ok('', 'Moonlight deployed successfully!')
     else:
         xbmcgui.Dialog().ok('', 'Failed! Please try again...')
-
 
 @plugin.route('/actions/delete-key')
 def delete_key():
     import xbmcgui
     import shutil
     import time
-    if os.path.isfile("/storage/.cache/moonlight/client.p12"):
+
+    crypto_key_dir = RequiredFeature('crypto-provider').request().get_key_dir()
+    if os.path.isfile(crypto_key_dir + "client.p12"):
         check = xbmcgui.Dialog().yesno('', 'Are you sure you want to clear the pairing key?', nolabel='No', yeslabel='Yes')
         if check:
-            shutil.rmtree('/storage/.cache/moonlight')
-            time.sleep(2)
-            if not os.path.isdir("/storage/.cache/moonlight"):
+            shutil.rmtree(crypto_key_dir)
+            #time.sleep(2)
+            if not os.path.isdir(crypto_key_dir):
                 xbmcgui.Dialog().ok('', 'Pairing key successfully removed!')
     else:
         xbmcgui.Dialog().ok('', 'A pairing key was not found! Nothing to do...')
@@ -215,21 +240,20 @@ def delete_key():
 def check_host(hostname):
     try:
         request = requests.get("http://" + hostname + ":47989/serverinfo?", timeout=10)
-        if request.status_code == 200:
-            return True
-        return False
+        return request.status_code == 200
     except (requests.exceptions.Timeout, requests.ConnectionError) as e:
         print(e)
         return False
-
 
 @plugin.route('/games')
 def show_games():
     import xbmcgui
 
+    crypto_key_dir = RequiredFeature('crypto-provider').request().get_key_dir()
     if (check_host(plugin.get_setting('host', str)) == True):
-        if os.path.isfile('/storage/.cache/moonlight/client.p12'):
+        if os.path.isfile(crypto_key_dir + 'client.p12'):
             game_controller = RequiredFeature('game-controller').request()
+            plugin.set_content('movies')
             return plugin.finish(game_controller.get_games_as_list(), sort_methods=['label'])
         else:
             xbmcgui.Dialog().ok('Pair key not found!', 'Please pair with the host before proceeding...')
@@ -256,7 +280,9 @@ def launch_game(game_id):
             if moonlight_quit_game(lastrun) == False:
                 return
         
-        start_game(game_id)
+        game_controller = RequiredFeature('game-controller').request()
+        game_controller.launch_game(game_id)
+        del game_controller
     else:
         if plugin.get_setting('last_run', str):
             cleanup = xbmcgui.Dialog().yesno('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue. \nIf you have restarted the host since your last session, you will need to remove residual data. \n\nWould you like to remove residual data now?', nolabel='No', yeslabel='Yes')
@@ -265,50 +291,4 @@ def launch_game(game_id):
         else:
             xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
 
-def start_game(game_id):
-    game_controller = RequiredFeature('game-controller').request()
-    game_controller.launch_game(game_id)
-    del game_controller
-
-@plugin.route('/games/launch-from-widget/<xml_id>')
-def launch_game_from_widget(xml_id):
-    core = RequiredFeature('core').request()
-    game_id = int(xml_id)
-    internal_game_id = plugin.get_storage('sorted_game_storage').get(game_id)
-
-    game_controller = RequiredFeature('game-controller').request()
-    core.logger.info('Launching game %s' % internal_game_id)
-    game_controller.launch_game(internal_game_id)
-
-    del core
-    del game_controller
-
-if __name__ == '__main__':
-    
-    if plugin.get_setting('host', str):
-        game_refresh_required = False
-
-        try:
-            from resources.lib.model.game import Game
-            if plugin.get_storage('game_version')['version'] != Game.version:
-                game_refresh_required = True
-        except KeyError:
-            game_refresh_required = True
-
-        if game_refresh_required:
-            game_controller = RequiredFeature('game-controller').request()
-            game_controller.get_games()
-            del game_controller
-
-        plugin.run()
-        del plugin
-    else:
-        import xbmcgui
-        core = RequiredFeature('core').request()
-        xbmcgui.Dialog().ok(core.string('name'), core.string('configure_first'))
-        del core
-        if not os.path.isfile("/storage/moonlight/moonlight"):
-            confirmed = xbmcgui.Dialog().yesno('', 'Moonlight not detected! Would you like to download/setup the package now?', nolabel='No', yeslabel='Yes')
-            if confirmed:
-                get_moonlight()
-        open_settings()
+plugin.run()

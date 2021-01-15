@@ -5,28 +5,24 @@ count=0
 
 sleep 10
 
-while [ `cat /sys/class/video/disable_video` -eq 1 ]; do
-    echo Setting disable_video flag to zero...
-    echo 0 > /sys/class/video/disable_video
-done
-
 while [ true ]; do
     status="$(ps -ef | grep "[m]oonlight stream"* | wc -l)"
     if [ ${status} -ne 1 ]; then
         echo ${status}
-        echo 'Moonlight is NOT running' 
-        echo 1 > /sys/class/video/disable_video
+        echo 'Moonlight is NOT running'
+
+        # Just in case something fails, reset the framebuffers.
         echo 0 > /sys/class/graphics/fb0/blank
         echo 0 > /sys/class/graphics/fb1/blank
         killall -CONT kodi.bin
         exit
     else
         echo 'Moonlight is running'
-        if [ -f "/storage/moonlight/aml_decoder.stats" ]; then
-            failed="$(sed '1!d' "/storage/moonlight/aml_decoder.stats" | awk 'END {print $NF}')"
+        if [ -f "aml_decoder.stats" ]; then
+            failed="$(sed '1!d' "aml_decoder.stats" | awk 'END {print $NF}')"
             if [[ ${failed} == "-1" ]]; then
                 killall moonlight
-                echo 1 > /sys/class/video/disable_video
+                # Just in case something fails, reset the framebuffers.
                 echo 0 > /sys/class/graphics/fb0/blank
                 echo 0 > /sys/class/graphics/fb1/blank
                 killall -CONT kodi.bin
@@ -40,7 +36,7 @@ while [ true ]; do
                     echo "$i"
                     hid=$(lsusb -d "$i" | awk '{ print $4}' | sed 's/.$//')
                     echo "$hid"
-                    python /storage/.kodi/addons/script.luna/resources/lib/launchscripts/osmc/reset_usb.py -d $hid
+                    python reset_usb.py -d $hid
                 fi
             done
             count=$((count+1))
