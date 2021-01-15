@@ -1,27 +1,20 @@
 import os
 import subprocess
-import requests
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
 
-from xml.etree.ElementTree import ElementTree
-from xml.etree.ElementTree import Element
-
-try:
-    import xbmcgui
-except ImportError:
-    from xbmcswift2 import xbmcgui
+from xbmcswift2 import xbmcgui
 
 from .abcscraper import AbstractScraper
 from resources.lib.model.apiresponse import ApiResponse
 from resources.lib.model.fanart import Fanart
-#from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 
 class TgdbScraper(AbstractScraper):
     def __init__(self, plugin, core):
-        #requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
         AbstractScraper.__init__(self, plugin, core)
-        #self.api_url = 'https://thegamesdb.net/api/GetGame.php?name=%s'
-        self.api_url = "https://thegamesdb.net/search.php?platform_id[]=1&name="
+        self.base_api_url = 'https://thegamesdb.net/'
+        self.search_api_url = self.base_api_url + "search.php?platform_id[]=1&name=" 
         self.cover_cache = self._set_up_path(os.path.join(self.base_path, 'art/poster/'))
         self.fanart_cache = self._set_up_path(os.path.join(self.base_path, 'art/fanart/'))
         self.api_cache = os.path.join(self.base_path, 'api_cache/')
@@ -44,25 +37,23 @@ class TgdbScraper(AbstractScraper):
     def _gather_information(self, nvapp, game):
         game_cover_path = self._set_up_path(os.path.join(self.cover_cache, nvapp.id))
         game_fanart_path = self._set_up_path(os.path.join(self.fanart_cache, nvapp.id))
-
-        xml_response_file = self._get_xml_data(nvapp.id, game)
-
-        try:
-            xml_root = ElementTree(file=xml_response_file).getroot()
-        except:
+        
+        search_html = urlopen(self.search_api_url + game).read()
+        search_soup = BeautifulSoup(search_html)
+        game_link = search_soup.find(id="display").find("a")
+        game_url = ""
+        if game_link is None:
             xbmcgui.Dialog().notification(
                 self.core.string('name'),
                 self.core.string('scraper_failed') % (game, self.name())
             )
-
-            if xml_response_file is not None and os.path.isfile(xml_response_file):
-                os.remove(xml_response_file)
-
             return ApiResponse()
+        else:
+            game_url = game_link.get('href')
+            game_html = urlopen(self.base_api_url + game_url).read()
+            game_soup = BeautifulSoup(game_html)
 
-        dict_response = self._parse_xml_to_dict(xml_root)
-
-        if dict_response:
+            dict_response = self._parse_xml_to_dict(game_soup)
             posters = dict_response['posters']
             dict_response['posters'] = []
             for poster in posters:
@@ -70,67 +61,33 @@ class TgdbScraper(AbstractScraper):
 
             local_arts = {}
             for art in dict_response.get('fanarts'):
-                art.set_thumb(self._dump_image(game_fanart_path, art.get_thumb()))
-                local_arts[os.path.basename(art.get_thumb())] = art
+                art.set_thumb(self._dump_image(game_fanart_path, art.get_original()))
+                local_arts[os.path.basename(art.get_original())] = art
             dict_response['fanarts'] = local_arts
-
             return ApiResponse.from_dict(**dict_response)
 
-    def _get_xml_data(self, id, game):
-        if not os.path.exists("/storage/.kodi/userdata/addon_data/script.luna/.storage/api_cache/" + id):
-            os.makedirs("/storage/.kodi/userdata/addon_data/script.luna/.storage/api_cache/" + id)
-        
-        file_path = os.path.join(self.api_cache, id, game+'_tgdb.xml')
-        if not os.path.isfile(file_path):
-            curl = subprocess.Popen(['curl', '-XGET', self.api_url + game], stdout=subprocess.PIPE)
-            with open(file_path, 'wb') as response_file:
-                response_file.write(curl.stdout.read())
-
-        return file_path
-
     @staticmethod
-    def _parse_xml_to_dict(root):
+    def _parse_xml_to_dict(game_soup):
         """
 
         :rtype: dict
         :type root: Element
         """
         data = {'year': 'N/A', 'plot': 'N/A', 'posters': [], 'genre': [], 'fanarts': []}
-        similar_id = []
-        base_img_url = root.find('baseImgUrl').text
-
-        for game in root.findall('Game'):
-            if game.find('Platform').text == 'PC':
-                if game.find('ReleaseDate') is not None:
-                    data['year'] = os.path.basename(game.find('ReleaseDate').text)
-                if game.find('Overview') is not None:
-                    data['plot'] = game.find('Overview').text
-                for img in game.find('Images'):
-                    if img.get('side') == 'front':
-                        data['posters'].append(os.path.join(base_img_url, img.text))
-                    if img.tag == 'fanart':
-                        image = Fanart()
-                        image.set_original(os.path.join(base_img_url, img.find('original').text))
-                        image.set_thumb(os.path.join(base_img_url, img.find('thumb').text))
-                        data['fanarts'].append(image)
-                        del image
-                if game.find('Genres') is not None:
-                    for genre in game.find('Genres'):
-                        data['genre'].append(str(genre.text))
-                if game.find('Similar') is not None:
-                    for similar in game.find('Similar'):
-                        if similar.tag == 'Game':
-                            similar_id.append(similar.find('id').text)
-                break
-
-        for game in root.findall('Game'):
-            if game.find('id').text in similar_id:
-                for img in game.find('Images'):
-                    if img.tag == 'fanart':
-                        image = Fanart()
-                        image.set_original(os.path.join(base_img_url, img.find('original').text))
-                        image.set_thumb(os.path.join(base_img_url, img.find('thumb').text))
-                        data['fanarts'].append(image)
-                        del image
+        overview = game_soup.find("p", class_="game-overview")
+        if overview is not None:
+            data['plot'] = overview.text
+        siblings = overview.find_next_siblings('p')
+        for sibling in siblings:
+            if 'Genre' in sibling.text:
+                data['genre'] = sibling.text.replace('Genre(s): ', '').split(' | ')
+        front_cover = game_soup.find("img", alt='front cover')
+        if front_cover is not None:
+            data['posters'] = [front_cover.get('src')]
+        fanart = game_soup.find("a", attrs={"data-caption": "Fanart"})
+        if fanart is not None:
+            model = Fanart()
+            model.set_original(fanart.get('href'))
+            data['fanarts'].append(model)
 
         return data

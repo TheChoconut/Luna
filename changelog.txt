@@ -18,3 +18,9 @@ v0.6.6.5-alpha:
 -- Start and kill the zerotier connection with the 'ZeroTier' toggle in order to pass connectivity checks.
 v0.7.0.0-alpha-matrix:
 -- Initial support for Kodi v19 (Matrix). Basic functions have been converted to python3. Removed optional code and number of operations for faster load times.
+v0.7.1.0-alpha-matrix:
+-- Removed unsupported views and handles.
+-- Moonlight launch is now in a thread, improving Kodi performance after closing the process.
+-- Support for scraping games from TheGamesDB.
+-- Removed IGDB scraper, new API is not implemented.
+-- Binaries can now be shipped with the addon.

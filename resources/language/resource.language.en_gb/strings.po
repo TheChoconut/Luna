@@ -142,7 +142,7 @@ msgid "Enable Luna Widget"
 msgstr ""
 
 msgctxt "#30031"
-msgid "Patch OSMC Skin"
+msgid "Use alternative Amlogic decoder algorithm"
 msgstr ""
 
 msgctxt "#30032"
@@ -201,8 +201,12 @@ msgctxt "#30045"
 msgid "Delete Pairing Key"
 msgstr ""
 
+msgctxt "#30046"
+msgid "Show Intro"
+msgstr ""
+
 #Context Menu
-#empty strings from id 30046 to 30099
+#empty strings from id 30047 to 30099
 
 msgctxt "#30100"
 msgid "Addon Settings"

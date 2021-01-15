@@ -34,10 +34,15 @@ class Core:
 
     def string(self, string_id):
         if string_id in STRINGS:
-            return self.plugin.get_string(STRINGS[string_id]).encode('utf-8')
+            return self.plugin.get_string(STRINGS[string_id])
         else:
             return string_id
 
     def get_storage(self):
         return self.plugin.get_storage('game_storage')
-
+    
+    def check_script_permissions(self):
+        st = os.stat(internal_path + 'resources/lib/launchscripts/linux/moonlight-heartbeat.sh')
+        if not bool(st.st_mode & stat.S_IXUSR):
+            os.chmod(internal_path + 'resources/lib/launchscripts/linux/moonlight-heartbeat.sh', st.st_mode | 0o111)
+            self.logger.info('Changed file permissions for moonlight-heartbeat')

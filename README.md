@@ -1,14 +1,10 @@
-![alt tag](https://raw.github.com/wackerl91/luna/master/icon.png)
+![alt tag](https://raw.github.com/TheChoconut/luna/master/icon.png)
 
 Luna: The Moonlight launcher for Kodi - modified by stickman89
 See thread at: https://discourse.coreelec.org/t/unofficial-moonlight-embedded
 
-## Prerequisites
-[Moonlight-Embedded] binaries can be downloaded from: https://www.dropbox.com/sh/sxwcpus6903na36/AACWC5lvC8QChIrj14xR6nRva?dl=0 
-Untar package to the '/storage/' directory using the command: tar -xvf moonlightXX.tar.gz
-
 ## Installation
-- Download from [release page](https://github.com/wackerl91/luna/releases)
+- Download from [release page](https://github.com/TheChoconut/luna/releases)
 - Copy to your OSMC installation or use a network share
 - In Kodi: Settings > Addons > Install from zip file
 - Before first starting the addon, you must enter at least the IP of the GameStream host in the addon settings. 

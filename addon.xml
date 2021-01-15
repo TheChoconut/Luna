@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="script.luna" name="Luna" version="0.7.0.0~alpha~matrix" provider-name="wackerl91 modified by stickman89 and TheChoconut">
+<addon id="script.luna" name="Luna" version="0.7.1.0~alpha~matrix" provider-name="wackerl91 modified by stickman89 and TheChoconut">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.xbmcswift2" version="2.4.0"/>
     <import addon="script.module.yaml" version="3.11.0" />
     <import addon="script.module.requests" version="2.4.3" />
+    <import addon="script.module.beautifulsoup4" version="4.9.3+matrix.1" />
   </requires>
   <extension point="xbmc.python.pluginsource" library="addon.py">
-    <provides>executable</provides>
+    <provides>executable game</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>

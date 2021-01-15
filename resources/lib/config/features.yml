@@ -88,16 +88,6 @@
     - { name: scraper-chain }
 
 --- !component
-  name: igdb-scraper
-  module: resources.lib.scraper.igdbscraper
-  class_name: IgdbScraper
-  arguments:
-    - '@plugin'
-    - '@core'
-  tags:
-    - { name: scraper-chain }
-
---- !component
   name: nvhttp-scraper
   module: resources.lib.scraper.nvhttpscraper
   class_name: NvHTTPScraper

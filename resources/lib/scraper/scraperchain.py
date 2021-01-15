@@ -16,6 +16,7 @@ class ScraperChain:
 
     def query_game_information(self, nvapp):
         game_info = []
+        nvapp.title = nvapp.title if type(nvapp.title) == str else str(nvapp.title, 'utf-8') 
         self.logger.info("Trying to get information for game: %s" % nvapp.title)
         if nvapp.title not in self.game_blacklist:
             for scraper in self.scraper_chain:

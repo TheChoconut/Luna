@@ -123,25 +123,29 @@ class MoonlightHelper:
         player = xbmc.Player()
         launchscript_cwd = self.internal_path + 'resources/lib/launchscripts/linux/'
         moonlight_args = [binary_path + "moonlight", "stream", "-app", game_id, "-logging"]
+        showIntro = self.plugin.get_setting('show_intro', bool)
+        if self.plugin.get_setting('enable_moonlight_alt_aml_algorithm', bool):
+            moonlight_args.append('-altdecalgorithm')
         if not isResumeMode:
-            moonlight_args = moonlight_args + ["-delay", "10"]
+            self.plugin.set_setting('last_run', game_id)
+            if showIntro:
+                moonlight_args = moonlight_args + ["-delay", "10"]
 
         try:
-            moonlight_cmd = subprocess.Popen(moonlight_args, shell=False, start_new_session=True)
-            subprocess.Popen([launchscript_cwd + 'moonlight-heartbeat.sh'], cwd=launchscript_cwd, shell=False)
+            moonlight_cmd = subprocess.Popen(moonlight_args, cwd=binary_path, start_new_session=True)
+            heart = subprocess.Popen([launchscript_cwd + 'moonlight-heartbeat.sh'], cwd=launchscript_cwd, start_new_session=True)
 
-            if not isResumeMode:
-                self.plugin.set_setting('last_run', game_id)
+            if showIntro and not isResumeMode:
                 player.play(self.internal_path + '/resources/statics/loading.mp4')
                 time.sleep(8)
                 xbmc.audioSuspend()
                 time.sleep(2.5)
                 player.stop()
 
-            subprocess.Popen(['killall', '-STOP', 'kodi.bin'], shell=False)	
+            subprocess.Popen(['killall', '-STOP', 'kodi.bin'])	
             moonlight_cmd.wait()
+            heart.wait()
 
-            os.system("pkill -x moonlight; pkill -x moonlight-heart")
             xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, False)
         except Exception as e:
             print("Failed to execute moonlight process.")

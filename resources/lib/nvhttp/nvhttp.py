@@ -49,7 +49,7 @@ class NvHTTP(object):
             status_message = server_info.get('status_message')
         except ET.ParseError as e:
             status_code = str(response.status_code)
-            status_message = response.content
+            status_message = str(response.content, 'utf-8')
         if int(status_code) != 200:
             raise AssertionError(status_code + ' ' + status_message)
 

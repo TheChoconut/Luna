@@ -79,7 +79,7 @@ class Game:
             return Fanart(alt, alt)
         else:
             try:
-                response = next(inter(list(self.fanarts.values())))
+                response = next(iter(list(self.fanarts.values())))
                 if not os.path.isfile(response.get_original()):
                     response.set_original(self._replace_thumb(response.get_thumb(), response.get_original()))
             except:

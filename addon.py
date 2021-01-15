@@ -32,6 +32,7 @@ def index():
 def no_host_detected():
     import xbmcgui
     core = RequiredFeature('core').request()
+    core.check_script_permissions()
     xbmcgui.Dialog().ok(core.string('name'), core.string('configure_first'))
     del core
     binary_path = RequiredFeature('config-helper').request().binary_path
@@ -41,35 +42,33 @@ def no_host_detected():
             get_moonlight()
     open_settings()
 
-@plugin.cached()
 def main_route():
     default_fanart_path = addon_internal_path + '/fanart.jpg'
-    common_properties = { 'fanart_image': default_fanart_path }
     return [
         {
             'label': 'Games',
             'thumbnail': addon_internal_path + '/resources/icons/controller.png',
-            'properties': common_properties,
+            'fanart': default_fanart_path,
             'path': plugin.url_for(endpoint='show_games')
         }, {
             'label': 'Resume Running Game',
             'thumbnail': addon_internal_path + '/resources/icons/resume.png',
-            'properties': common_properties,
+            'fanart': default_fanart_path,
             'path': plugin.url_for(endpoint='resume_game')
         }, {
             'label': 'Quit Current Game',
             'thumbnail': addon_internal_path + '/resources/icons/quit.png',
-            'properties': common_properties,
+            'fanart': default_fanart_path,
             'path': plugin.url_for(endpoint='quit_game', refresh=False)
         }, {
             'label': 'ZeroTier Connect',
             'thumbnail': addon_internal_path + '/resources/icons/zerotier.png',
-            'properties': common_properties,
+            'fanart': default_fanart_path,
             'path': plugin.url_for(endpoint='zerotier_connect')
         }, {
             'label': 'Settings',
             'thumbnail': addon_internal_path + '/resources/icons/cog.png',
-            'properties': common_properties,
+            'fanart': default_fanart_path,
             'path': plugin.url_for(endpoint='open_settings')
         }
     ]
@@ -166,7 +165,7 @@ def moonlight_quit_game(lastrun):
     confirmed = xbmcgui.Dialog().yesno('', 'Confirm to quit ' + lastrun + '?', nolabel='No', yeslabel='Yes', autoclose=5000)
     if confirmed:
         try:
-            subprocess.run([binary_path + "moonlight", "quit"], timeout=10, shell=False, start_new_session=True, check=True)
+            subprocess.run([binary_path + "moonlight", "quit"], cwd=binary_path, timeout=10, check=True)
             plugin.set_setting('last_run', None)
         except Exception as e:
             xbmcgui.Dialog().ok('Error', 'There was an error while attempting to quit the game.\nPlease provide logs to the developers.')
@@ -248,12 +247,13 @@ def check_host(hostname):
 @plugin.route('/games')
 def show_games():
     import xbmcgui
-
+    core = RequiredFeature('core').request()
+    core.check_script_permissions()
+    del core
     crypto_key_dir = RequiredFeature('crypto-provider').request().get_key_dir()
     if (check_host(plugin.get_setting('host', str)) == True):
         if os.path.isfile(crypto_key_dir + 'client.p12'):
             game_controller = RequiredFeature('game-controller').request()
-            plugin.set_content('movies')
             return plugin.finish(game_controller.get_games_as_list(), sort_methods=['label'])
         else:
             xbmcgui.Dialog().ok('Pair key not found!', 'Please pair with the host before proceeding...')

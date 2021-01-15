@@ -54,16 +54,17 @@ class GameController:
 
         i = 1
         for nvapp in game_list:
-            progress_dialog.update(bar_movement * i, 'Processing: %s' % nvapp.title)
+            dialogText = 'Processing: %s\n' % nvapp.title
+            progress_dialog.update(bar_movement * i, dialogText)
             game = Game(nvapp.title)
 
             if nvapp.id in cache:
                 if not storage.get(nvapp.id):
-                    progress_dialog.update(bar_movement * i, 'Restoring information from cache')
+                    progress_dialog.update(bar_movement * i, dialogText + 'Restoring information from cache')
                     storage[nvapp.id] = cache.get(nvapp.id)[0]
             else:
                 try:
-                    progress_dialog.update(bar_movement * i, 'Getting Information from Local Sources')
+                    progress_dialog.update(bar_movement * i, dialogText + 'Getting Information from Local Sources')
                     storage[nvapp.id] = self.scraper_chain.query_game_information(nvapp)
                 except KeyError as e:
                     self.logger.info(
@@ -136,9 +137,9 @@ class GameController:
                 )
                 ]
 
-            if self.plugin.get_setting('last_run', str):
-                lastrun = self.plugin.get_setting('last_run', str)
-                if (lastrun == game.name.decode('utf-8')):
+            lastrun = self.plugin.get_setting('last_run', str)
+            if lastrun:
+                if (lastrun == game.name):
                     return default_context_menu + [(
                         self.core.string('quit_game'),
                         'RunPlugin(%s)' % self.plugin.url_for(endpoint='quit_game', refresh=True)
@@ -151,33 +152,33 @@ class GameController:
             self.get_games()
 
         items = []
+        lastrun = self.plugin.get_setting('last_run', str)
         for i, game_name in enumerate(storage):
             game = storage.get(game_name)
-            label = game.name
-            if self.plugin.get_setting('last_run', str):
-                lastrun = self.plugin.get_setting('last_run', str)
-                if (lastrun == game.name.decode('utf-8')):
-                    label = '[B][COLOR green]' + game.name.decode('utf-8') + '[/COLOR][/B]'
-
+            label = game.name if type(game.name) == str else str(game.name, 'utf-8')
+            if lastrun and lastrun == label:
+                label = '[B][COLOR green]' + label + '[/COLOR][/B]'
+                lastrun = False
+            
+            game.year = int(game.year) if game.year is not None and game.year.isnumeric() else ''
             items.append({
                 'label': label,
                 'icon': game.get_selected_poster(),
                 'thumbnail': game.get_selected_poster(),
                 'info': {
-                    'year': game.year,
+                    'title': game.name,
+                    'genre': game.genre,
                     'plot': game.plot,
-                    'genre': game.get_genre_as_string(),
-                    'originaltitle': game.name,
+                    'mediatype': 'movie',
+                    'year': game.year
                 },
+                'fanart': game.get_selected_fanart().get_original(),
                 'replace_context_menu': True,
                 'context_menu': context_menu(game_name),
                 'path': self.plugin.url_for(
                     endpoint='launch_game',
                     game_id=game.name
-                ),
-                'properties': {
-                    'fanart_image': game.get_selected_fanart().get_original()
-                }
+                )
             })
 
         return items

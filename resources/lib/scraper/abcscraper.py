@@ -1,5 +1,7 @@
 import os
 import subprocess
+import requests
+from urllib.request import urlopen
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 
@@ -54,10 +56,14 @@ class AbstractScraper:
         if url != 'N/A':
             file_path = os.path.join(base_path, os.path.basename(url))
             if not os.path.exists(file_path):
-                with open(file_path, 'wb') as img:
-                    curl = subprocess.Popen(['curl', '-XGET', url], stdout=subprocess.PIPE)
-                    img.write(curl.stdout.read())
-                    img.close()
+                print(url)
+                r = requests.get(url, stream=True, headers={'User-agent': 'Mozilla/5.0'})
+                if r.status_code is 200:
+                    with open(file_path, 'wb') as img:
+                        img.write(r.content)
+                        img.close()
+                else: 
+                    print(r)
 
             return file_path
         else:
