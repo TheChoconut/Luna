@@ -8,8 +8,7 @@ plugin = RequiredFeature('plugin').request()
 addon_path = plugin.storage_path
 addon_internal_path = plugin.addon.getAddonInfo('path')
 
-
-@plugin.cached_route('/')
+@plugin.route('/')
 def index():
     if plugin.get_setting('host', str):
         game_refresh_required = False

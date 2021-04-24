@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="script.luna" name="Luna" version="0.7.1.0~alpha~matrix" provider-name="wackerl91 modified by stickman89 and TheChoconut">
+<addon id="script.luna" name="Luna" version="0.7.1.0~alpha~matrix" provider-name="wackerl91, stickman89, TheChoconut">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.xbmcswift2" version="2.4.0"/>
@@ -14,7 +14,7 @@
     <platform>all</platform>
     <language>en</language>
     <summary lang="en_GB">Moonlight Launcher for Kodi</summary>
-    <description lang="en_GB">Moonlight Launcher modified for Kodi [:s89mod:]. [CR]New menu icons by stickman89 [CR]Resume and Quit support [CR]ZeroTier Support - installation required via entware [CR]Fixes all around...</description>
+    <description lang="en_GB">Luna is a Moonlight Launcher for Kodi. [CR]Use Luna to play games using Nvidia's GameStream protocol. [CR]Resume and quit sessions from Kodi [CR]ZeroTier Support - installation required via entware</description>
     <assets>
       <icon>icon.png</icon>
       <fanart>fanart.jpg</fanart>

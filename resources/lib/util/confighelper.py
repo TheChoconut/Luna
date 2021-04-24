@@ -2,7 +2,6 @@ import configparser
 import os
 import xbmcaddon
 
-
 class ConfigHelper:
     conf = 'moonlight.conf'
 
@@ -256,7 +255,7 @@ class ConfigHelper:
             '/usr/bin/moonlight',
             '/usr/local/bin/moonlight',
             '/storage/moonlight/moonlight',
-            os.path.join(internal_path, 'resources', 'bin', 'moonlight')
+            os.path.join(internal_path, 'bin', 'moonlight')
         ]
 
         for f in binary_locations:
