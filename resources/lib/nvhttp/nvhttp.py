@@ -64,7 +64,7 @@ class NvHTTP(object):
             # Looks like GEN7 Servers are sending 404 instead of 401 if client is not authorized
             # GFE 2.11.3.5 returns 200 on my machine, only the response body has the right status code
             
-            if response.status_code in [401, 404] or str(e).startswith('401'):
+            if response.status_code in [400, 401, 404] or str(e).startswith('401'):
                 response = self.open_http_connection(
                     self.base_url_http + '/serverinfo?' + self.build_uid_uuid_string(), True, False)
             else:
