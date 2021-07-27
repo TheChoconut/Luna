@@ -36,9 +36,7 @@ def no_host_detected():
     del core
     binary_path = RequiredFeature('config-helper').request().binary_path
     if binary_path is None:
-        confirmed = xbmcgui.Dialog().yesno('', 'Moonlight not detected! Would you like to download/setup the package now?', nolabel='No', yeslabel='Yes')
-        if confirmed:
-            get_moonlight()
+        xbmcgui.Dialog().ok("Missing binaries", "Couldn\'t detect moonlight binary.\r\nPlease check your setup.")
     open_settings()
 
 def main_route():
@@ -204,32 +202,16 @@ def reset_cache():
         scraper_chain.reset_cache()
         del scraper_chain
 
-@plugin.route('/actions/get-moonlight')
-def get_moonlight():
-    import xbmcgui
-    xbmcgui.Dialog().notification('Moonlight Updater', 'Grabbing latest Moonlight package...')
-    subprocess.call('wget https://gist.githubusercontent.com/TheChoconut/fe550f8c19c11f71a85841f135eddecb/raw/ -qO - | bash', shell=True)
-    config_helper = RequiredFeature('config-helper').request()
-    config_helper.configure()
-    binary_path = config_helper.binary_path
-    del config_helper
-    if binary_path is not None:
-        xbmcgui.Dialog().ok('', 'Moonlight deployed successfully!')
-    else:
-        xbmcgui.Dialog().ok('', 'Failed! Please try again...')
-
 @plugin.route('/actions/delete-key')
 def delete_key():
     import xbmcgui
-    import shutil
     import time
 
     crypto_key_dir = RequiredFeature('crypto-provider').request().get_key_dir()
     if os.path.isfile(crypto_key_dir + "client.p12"):
         check = xbmcgui.Dialog().yesno('', 'Are you sure you want to clear the pairing key?', nolabel='No', yeslabel='Yes')
         if check:
-            shutil.rmtree(crypto_key_dir)
-            #time.sleep(2)
+            os.remove(crypto_key_dir + "client.p12")
             if not os.path.isdir(crypto_key_dir):
                 xbmcgui.Dialog().ok('', 'Pairing key successfully removed!')
     else:

@@ -205,8 +205,12 @@ msgctxt "#30046"
 msgid "Show Intro"
 msgstr ""
 
+msgctxt "#30047"
+msgid "Surround Audio Setup"
+msgstr ""
+
 #Context Menu
-#empty strings from id 30047 to 30099
+#empty strings from id 30048 to 30099
 
 msgctxt "#30100"
 msgid "Addon Settings"

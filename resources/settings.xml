@@ -6,6 +6,7 @@
         <setting label="30008" type="action" action="RunPlugin(plugin://script.luna/actions/pair-host)" option="close"/>
         <setting label="30003" type="labelenum" id="framerate" values="30|60|90|120"/>
         <setting label="30043" type="bool" id="enable_surround_audio" default="false"/>
+        <setting label="30047" enable="eq(-1,true)" type="labelenum" id="surround" values="5.1|7.1" default="7.1" />
         <setting label="30039" enable="eq(1,false)" type="labelenum" id="audio_device" values="default|sysdefault|local|pulse" default="sysdefault"/>
         <setting label="30042" type="bool" id="custom_audio_device" default="false"/>
         <setting label="30037" subsetting="true" enable="eq(-1,true)" visible="eq(-1,true)" type="action" action="RunPlugin(plugin://script.luna/settings/select-audio)"/>
@@ -17,18 +18,16 @@
         <setting label="30006" subsetting="true" enable="eq(-1,true)" visible="eq(-1,true)" type="slider" id="resolution_width" range="640,10,3840" option="int" default="1280"/>
         <setting label="30007" subsetting="true" enable="eq(-2,true)" visible="eq(-2,true)" type="slider" id="resolution_height" range="480,10,2160" option="int" default="720"/>
         <setting visible="false" type="text" id="last_run" default=""/>
-        <setting visible="false" type="text" id="app_icon_hash" default=""/>
         <setting visible="false" type="bool" id="zerotier" default="false"/>
     </category>
     <category label="30016">
         <setting label="30017" type="bool" id="enable_custom_input" default="false"/>
-        <!--<setting label="30034" type="action" enable="eq(-1,true)" action="RunPlugin(plugin://script.luna/settings/select-input)"/> select-input is broken-->
     </category>
     <category label="30009">
         <setting label="30010" type="bool" id="enable_custom_bitrate" default="false"/>
         <setting label="30011" type="slider" id="bitrate" enable="eq(-1,true)" range="0,1,100" option="int" default="20"/>
-        <setting label="30012" type="slider" id="packetsize" enable="eq(-2,true)" range="256,8,2048" option="int" default="1024"/>
-        <setting label="30044" type="bool" id="unsupported_flag" default="false"/>
+        <setting label="30012" type="slider" id="packetsize" enable="eq(-2,true)" range="256,8,2048" option="int" default="1392"/>
+        <setting label="30044" type="bool" id="nounsupported_flag" default="false"/>
         <setting label="30014" type="bool" id="graphic_optimizations" default="false"/>
         <setting label="30013" type="bool" id="remote_optimizations" default="false"/>
         <setting label="30015" type="bool" id="local_audio" default="false"/>
@@ -39,6 +38,5 @@
         <setting label="30026" visible="true" type="bool" id="enable_tgdb" default="false"/>
         <setting label="30022" type="action" action="RunPlugin(plugin://script.luna/actions/reset-cache)"/>
         <setting label="30045" type="action" action="RunPlugin(plugin://script.luna/actions/delete-key)"/>
-        <setting label="30041" type="action" action="RunPlugin(plugin://script.luna/actions/get-moonlight)"/>
     </category>
 </settings>

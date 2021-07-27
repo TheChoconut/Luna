@@ -32,15 +32,15 @@ class ConfigHelper:
         self.audio_device = None
         self.enable_moonlight_debug = None
         self.codec = None
-        self.enable_surround_audio = None
-        self.unsupported_flag = None
+        self.surround = None
+        self.nounsupported_flag = None
 
     def _configure(self, addon_path, binary_path=None, host_ip=None, enable_custom_resolution=False, resolution_width=None,
                    resolution_height=None, resolution=None,
                    framerate=None, graphics_optimizations=False, remote_optimizations=False, local_audio=False,
                    enable_custom_bitrate=False, bitrate=None, packetsize=None,
                    enable_custom_input=False, override_default_resolution=False, audio_device=None, enable_moonlight_debug=False, codec=None,
-                   enable_surround_audio=False, unsupported_flag=None):
+                   surround=None, nounsupported_flag=None):
 
         self.addon_path = addon_path
         self.binary_path = binary_path
@@ -61,8 +61,8 @@ class ConfigHelper:
         self.audio_device = audio_device
         self.enable_moonlight_debug = enable_moonlight_debug
         self.codec = codec
-        self.enable_surround_audio = enable_surround_audio
-        self.unsupported_flag = unsupported_flag
+        self.surround = surround
+        self.nounsupported_flag = nounsupported_flag
 
 
     def configure(self, dump=True):
@@ -94,8 +94,8 @@ class ConfigHelper:
             'audio_device':                 self.plugin.get_setting('audio_device', str),
             'enable_moonlight_debug':       self.plugin.get_setting('enable_moonlight_debug', str),
             'codec':                        self.plugin.get_setting('codec', str),
-            'enable_surround_audio':        self.plugin.get_setting('enable_surround_audio', str),
-            'unsupported_flag':             self.plugin.get_setting('unsupported_flag', str)
+            'surround':                     self.plugin.get_setting('surround', str),
+            'nounsupported_flag':           self.plugin.get_setting('nounsupported_flag', str)
         }
         self._configure(**settings)
 
@@ -169,8 +169,10 @@ class ConfigHelper:
             config.remove_option('Moonlight', 'audio')
 
         config.set('Moonlight', 'codec', self.codec)
-        config.set('Moonlight', 'surround', self.enable_surround_audio)
-        config.set('Moonlight', 'unsupported', self.unsupported_flag)
+
+        if self.plugin.get_setting('enable_surround_audio', str) == 'true': 
+            config.set('Moonlight', 'surround', self.surround)
+        config.set('Moonlight', 'nounsupported', self.nounsupported_flag)
 
         if config.has_option('Moonlight', 'mapping'):
             config.remove_option('Moonlight', 'mapping')
