@@ -11,12 +11,14 @@
         <setting label="30042" type="bool" id="custom_audio_device" default="false"/>
         <setting label="30037" subsetting="true" enable="eq(-1,true)" visible="eq(-1,true)" type="action" action="RunPlugin(plugin://script.luna/settings/select-audio)"/>
         <setting label="30036" subsetting="true" enable="eq(-2,true)" visible="eq(-2,true)" type="text" id="audio_device_parameter" default=""/>
-        <setting label="30040" visible="true" type="labelenum" id="codec" values="auto|h264|h265" default="h265"/>
+        <setting label="30040" visible="true" type="labelenum" id="codec" values="h264|h265" default="h265"/>
         <setting label="30023" type="bool" id="override_default_resolution" default="false"/>
         <setting label="30004" enable="eq(1,false) + eq(-1,true)" visible="eq(-1,true)" type="labelenum" id="resolution" values="1280x720|1920x1080|2560x1440|3840x2160" default="1280x720"/>
         <setting label="30005" enable="eq(-2,true)" visible="eq(-2,true)" type="bool" id="enable_custom_resolution" default="false"/>
         <setting label="30006" subsetting="true" enable="eq(-1,true)" visible="eq(-1,true)" type="slider" id="resolution_width" range="640,10,3840" option="int" default="1280"/>
         <setting label="30007" subsetting="true" enable="eq(-2,true)" visible="eq(-2,true)" type="slider" id="resolution_height" range="480,10,2160" option="int" default="720"/>
+        <setting label="30010" type="bool" id="enable_custom_bitrate" default="false"/>
+        <setting label="30011" type="slider" id="bitrate" enable="eq(-1,true)" range="0,1,100" option="int" default="20"/>
         <setting visible="false" type="text" id="last_run" default=""/>
         <setting visible="false" type="bool" id="zerotier" default="false"/>
     </category>
@@ -24,15 +26,12 @@
         <setting label="30017" type="bool" id="enable_custom_input" default="false"/>
     </category>
     <category label="30009">
-        <setting label="30010" type="bool" id="enable_custom_bitrate" default="false"/>
-        <setting label="30011" type="slider" id="bitrate" enable="eq(-1,true)" range="0,1,100" option="int" default="20"/>
-        <setting label="30012" type="slider" id="packetsize" enable="eq(-2,true)" range="256,8,2048" option="int" default="1392"/>
+        <setting label="30012" type="slider" id="packetsize" range="256,8,2048" option="int" default="1392"/>
         <setting label="30044" type="bool" id="nounsupported_flag" default="false"/>
         <setting label="30014" type="bool" id="graphic_optimizations" default="false"/>
-        <setting label="30013" type="bool" id="remote_optimizations" default="false"/>
+        <setting label="30013" type="labelenum" id="remote_optimizations" values="yes|no|auto" default="no"/>
         <setting label="30015" type="bool" id="local_audio" default="false"/>
         <setting label="30038" type="bool" id="enable_moonlight_debug" default="false"/>
-        <setting label="30031" type="bool" id="enable_moonlight_alt_aml_algorithm" default="false" />
     </category>
     <category label="30021">
         <setting label="30026" visible="true" type="bool" id="enable_tgdb" default="false"/>

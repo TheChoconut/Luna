@@ -150,12 +150,12 @@ class ConfigHelper:
         if self.packetsize != 1024:
             config.set('Moonlight', 'packetsize', str(self.packetsize))
         else:
-            config.set('Moonlight', 'packetsize', '1024')
+            config.set('Moonlight', 'packetsize', '1392')
 
         config.set('Moonlight', 'sops', self.graphics_optimizations)
-        config.set('Moonlight', 'remote', self.remote_optimizations)
         config.set('Moonlight', 'localaudio', self.local_audio)
         config.set('Moonlight', 'debug', self.enable_moonlight_debug)
+        config.set('Moonlight', 'remote', self.remote_optimizations)
         
         if self.plugin.get_setting('local_audio', str) == 'false':
             if self.plugin.get_setting('custom_audio_device', str) == 'true':
@@ -254,10 +254,10 @@ class ConfigHelper:
     @staticmethod
     def _find_binary(internal_path):
         binary_locations = [
+            os.path.join(internal_path, 'bin', 'moonlight'),
             '/usr/bin/moonlight',
             '/usr/local/bin/moonlight',
-            '/storage/moonlight/moonlight',
-            os.path.join(internal_path, 'bin', 'moonlight')
+            '/storage/moonlight/moonlight'
         ]
 
         for f in binary_locations:

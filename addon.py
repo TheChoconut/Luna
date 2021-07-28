@@ -128,7 +128,7 @@ def zerotier_connect():
 
 def process_exists(process_name):
     progs = subprocess.check_output("ps -ef | grep " + process_name + " | grep -v grep | wc -l", shell=True)
-    if '1' in progs:
+    if '1' in str(progs):
         return True
     else:
         return False
@@ -205,13 +205,14 @@ def reset_cache():
 @plugin.route('/actions/delete-key')
 def delete_key():
     import xbmcgui
+    import shutil
     import time
 
     crypto_key_dir = RequiredFeature('crypto-provider').request().get_key_dir()
     if os.path.isfile(crypto_key_dir + "client.p12"):
         check = xbmcgui.Dialog().yesno('', 'Are you sure you want to clear the pairing key?', nolabel='No', yeslabel='Yes')
         if check:
-            os.remove(crypto_key_dir + "client.p12")
+            shutil.rmtree(crypto_key_dir)
             if not os.path.isdir(crypto_key_dir):
                 xbmcgui.Dialog().ok('', 'Pairing key successfully removed!')
     else:

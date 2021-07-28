@@ -120,30 +120,17 @@ class MoonlightHelper:
         return RequiredFeature('connection-manager').request().pair(dialog)
 
     def launch_game_thread(self, isResumeMode, binary_path, game_id):
-        player = xbmc.Player()
         launchscript_cwd = self.internal_path + 'resources/lib/launchscripts/linux/'
-        moonlight_args = [binary_path + "moonlight", "stream", "-app", game_id, "-logging"]
-        showIntro = self.plugin.get_setting('show_intro', bool)
-        if self.plugin.get_setting('enable_moonlight_alt_aml_algorithm', bool):
-            moonlight_args.append('-altdecalgorithm')
+        codec = self.plugin.get_setting('codec', str).strip()
+
         if not isResumeMode:
             self.plugin.set_setting('last_run', game_id)
-            if showIntro:
-                moonlight_args = moonlight_args + ["-delay", "10"]
 
+        os.system("echo \"rm default\" > /sys/class/vfm/map")
+        os.system("echo \"add default vdec." + codec + ".00 amvideo\" > /sys/class/vfm/map")
         try:
-            moonlight_cmd = subprocess.Popen(moonlight_args, cwd=binary_path, start_new_session=True)
-            heart = subprocess.Popen([launchscript_cwd + 'moonlight-heartbeat.sh'], cwd=launchscript_cwd, start_new_session=True)
-
-            if showIntro and not isResumeMode:
-                player.play(self.internal_path + '/resources/statics/loading.mp4')
-                time.sleep(8)
-                xbmc.audioSuspend()
-                time.sleep(2.5)
-                player.stop()
-
-            subprocess.Popen(['killall', '-STOP', 'kodi.bin'])	
-            moonlight_cmd.wait()
+            heart = subprocess.Popen([launchscript_cwd + 'moonlight-heartbeat.sh', game_id], cwd=binary_path, start_new_session=True)
+            subprocess.Popen(['killall', '-STOP', 'kodi.bin'])
             heart.wait()
 
             xbmcgui.Dialog().notification('Information', game_id + ' is still running on host. Resume via Luna, ensuring to quit before the host is restarted!', xbmcgui.NOTIFICATION_INFO, False)
@@ -151,17 +138,10 @@ class MoonlightHelper:
             print("Failed to execute moonlight process.")
             print(e)
         finally:
+            os.system("echo \"rm default\" > /sys/class/vfm/map")
+            os.system("echo \"add default decoder ppmgr amlvideo deinterlace amvideo\" > /sys/class/vfm/map")
             xbmc.audioResume()
             xbmc.executebuiltin("InhibitScreensaver(false)")
-            if os.path.isfile(binary_path + "aml_decoder.stats"):				
-                with open(binary_path + "aml_decoder.stats") as stat_file:
-                    statistics = stat_file.read()
-                    if "StreamStatus = -1" in statistics:
-                        confirmed = xbmcgui.Dialog().yesno('Stream initialisation failed...', 'Try running ' + game_id + ' again?', nolabel='No', yeslabel='Yes')
-                        if confirmed:
-                            self.launch_game(game_id)
-                    else:
-                        xbmcgui.Dialog().ok('Stream statistics', statistics)
 
     def launch_game(self, game_id):
 
@@ -173,17 +153,18 @@ class MoonlightHelper:
         player = xbmc.Player()
         if player.isPlayingVideo():
             player.stop()
-
         isResumeMode = bool(self.plugin.get_setting('last_run',str))
-        if isResumeMode:
+        showIntro = self.plugin.get_setting('show_intro', bool)
+
+        if showIntro and not isResumeMode:
+            player.play(self.internal_path + 'resources/statics/loading.mp4')
+            time.sleep(10)
+            player.stop()
             xbmc.audioSuspend()
 
         xbmc.executebuiltin("Dialog.Close(busydialog)")
         xbmc.executebuiltin("Dialog.Close(notification)")
         xbmc.executebuiltin("InhibitScreensaver(true)")
-
-        if os.path.isfile(binary_path + "aml_decoder.stats"):
-            os.remove(binary_path + "aml_decoder.stats")
 
         launch_thread = threading.Thread(target=self.launch_game_thread, args=(isResumeMode, binary_path, game_id))
         launch_thread.start()

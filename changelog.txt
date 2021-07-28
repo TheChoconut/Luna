@@ -24,3 +24,12 @@ v0.7.1.0-alpha-matrix:
 -- Support for scraping games from TheGamesDB.
 -- Removed IGDB scraper, new API is not implemented.
 -- Binaries can now be shipped with the addon.
+v0.8.0-matrix:
+-- Added support for moonlight-embedded v2.5.0
+v0.8.1-matrix:
+-- Fixed an issue where moonlight wouldn't start
+-- This fix also changes moonlight loading and logging process, which is simplified and more resistant to threading issues
+v0.8.2-matrix:
+-- Fixed configurations for moonlight
+-- Cleaned up old code
+-- Removed some of hacks that were used to make the code support more linux platforms; though there are still CoreELEC specific commands used,

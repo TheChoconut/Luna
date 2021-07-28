@@ -142,7 +142,7 @@ msgid "Enable Luna Widget"
 msgstr ""
 
 msgctxt "#30031"
-msgid "Use alternative Amlogic decoder algorithm"
+msgid "Blank Text"
 msgstr ""
 
 msgctxt "#30032"
@@ -194,7 +194,7 @@ msgid "Enable Surround Sound"
 msgstr ""
 
 msgctxt "#30044"
-msgid "Enable Unsupported Resolutions"
+msgid "Only allow supported configurations"
 msgstr ""
 
 msgctxt "#30045"
