@@ -172,6 +172,8 @@ class ConfigHelper:
 
         if self.plugin.get_setting('enable_surround_audio', str) == 'true': 
             config.set('Moonlight', 'surround', self.surround)
+        else:
+            config.remove_option('Moonlight', 'surround')
         config.set('Moonlight', 'nounsupported', self.nounsupported_flag)
 
         if config.has_option('Moonlight', 'mapping'):

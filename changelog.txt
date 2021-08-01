@@ -32,4 +32,6 @@ v0.8.1-matrix:
 v0.8.2-matrix:
 -- Fixed configurations for moonlight
 -- Cleaned up old code
--- Removed some of hacks that were used to make the code support more linux platforms; though there are still CoreELEC specific commands used,
+-- Removed some of hacks that were used to make the code support more linux platforms; though there are still CoreELEC specific commands used.
+v0.8.2.1-matrix:
+-- Fixed surround option.
