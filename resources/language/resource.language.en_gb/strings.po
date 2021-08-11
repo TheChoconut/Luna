@@ -142,7 +142,7 @@ msgid "Enable Luna Widget"
 msgstr ""
 
 msgctxt "#30031"
-msgid "Blank Text"
+msgid "Disable gamepad mouse input emulation"
 msgstr ""
 
 msgctxt "#30032"

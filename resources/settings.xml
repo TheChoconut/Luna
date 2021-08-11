@@ -28,6 +28,7 @@
     <category label="30009">
         <setting label="30012" type="slider" id="packetsize" range="256,8,2048" option="int" default="1392"/>
         <setting label="30044" type="bool" id="nounsupported_flag" default="false"/>
+        <setting label="30031" type="bool" id="nomouseemulation_flag" default="false"/>
         <setting label="30014" type="bool" id="graphic_optimizations" default="false"/>
         <setting label="30013" type="labelenum" id="remote_optimizations" values="yes|no|auto" default="no"/>
         <setting label="30015" type="bool" id="local_audio" default="false"/>

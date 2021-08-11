@@ -34,13 +34,14 @@ class ConfigHelper:
         self.codec = None
         self.surround = None
         self.nounsupported_flag = None
+        self.nomouseemulation_flag = None
 
     def _configure(self, addon_path, binary_path=None, host_ip=None, enable_custom_resolution=False, resolution_width=None,
                    resolution_height=None, resolution=None,
                    framerate=None, graphics_optimizations=False, remote_optimizations=False, local_audio=False,
                    enable_custom_bitrate=False, bitrate=None, packetsize=None,
                    enable_custom_input=False, override_default_resolution=False, audio_device=None, enable_moonlight_debug=False, codec=None,
-                   surround=None, nounsupported_flag=None):
+                   surround=None, nounsupported_flag=None, nomouseemulation_flag=None):
 
         self.addon_path = addon_path
         self.binary_path = binary_path
@@ -63,6 +64,7 @@ class ConfigHelper:
         self.codec = codec
         self.surround = surround
         self.nounsupported_flag = nounsupported_flag
+        self.nomouseemulation_flag = nomouseemulation_flag
 
 
     def configure(self, dump=True):
@@ -95,7 +97,8 @@ class ConfigHelper:
             'enable_moonlight_debug':       self.plugin.get_setting('enable_moonlight_debug', str),
             'codec':                        self.plugin.get_setting('codec', str),
             'surround':                     self.plugin.get_setting('surround', str),
-            'nounsupported_flag':           self.plugin.get_setting('nounsupported_flag', str)
+            'nounsupported_flag':           self.plugin.get_setting('nounsupported_flag', str),
+            'nomouseemulation_flag':        self.plugin.get_setting('nomouseemulation_flag', str)
         }
         self._configure(**settings)
 
@@ -175,6 +178,7 @@ class ConfigHelper:
         else:
             config.remove_option('Moonlight', 'surround')
         config.set('Moonlight', 'nounsupported', self.nounsupported_flag)
+        config.set('Moonlight', 'nomouseemulation', self.nomouseemulation_flag)
 
         if config.has_option('Moonlight', 'mapping'):
             config.remove_option('Moonlight', 'mapping')

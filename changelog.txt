@@ -35,3 +35,5 @@ v0.8.2-matrix:
 -- Removed some of hacks that were used to make the code support more linux platforms; though there are still CoreELEC specific commands used.
 v0.8.2.1-matrix:
 -- Fixed surround option.
+v0.8.3-matrix:
+-- Added support for moonlight-embedded v2.5.1
