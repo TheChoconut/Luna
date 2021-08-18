@@ -118,6 +118,16 @@ class GameController:
         storage.sync()
         game_version_storage.sync()
 
+    def get_games_as_simple_list(self):
+        storage = self.core.get_storage()
+        items = []
+        for i, game_name in enumerate(storage):
+            game = storage.get(game_name)
+            label = game.name if type(game.name) == str else str(game.name, 'utf-8')
+            items.append(label)
+
+        return items
+
 
     def get_games_as_list(self):
         """

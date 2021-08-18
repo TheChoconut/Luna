@@ -37,3 +37,7 @@ v0.8.2.1-matrix:
 -- Fixed surround option.
 v0.8.3-matrix:
 -- Added support for moonlight-embedded v2.5.1
+v0.9.0-matrix:
+-- Added Quick Play (faster game launch)
+-- Fix issue where USB devices wouldn't work
+-- Cleanup.
