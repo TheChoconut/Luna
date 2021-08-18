@@ -43,6 +43,12 @@ def main_route():
     default_fanart_path = addon_internal_path + '/fanart.jpg'
     return [
         {
+            'label': 'Quick Play',
+            'thumbnail': addon_internal_path + '/resources/icons/controller.png',
+            'fanart': default_fanart_path,
+            'path': plugin.url_for(endpoint='quick_play', refresh=False)
+        },
+        {
             'label': 'Games',
             'thumbnail': addon_internal_path + '/resources/icons/controller.png',
             'fanart': default_fanart_path,
@@ -225,6 +231,28 @@ def check_host(hostname):
     except (requests.exceptions.Timeout, requests.ConnectionError) as e:
         print(e)
         return False
+
+@plugin.route('/quick_play')
+def quick_play():
+    import xbmcgui
+    core = RequiredFeature('core').request()
+    core.check_script_permissions()
+    del core
+    crypto_key_dir = RequiredFeature('crypto-provider').request().get_key_dir()
+    if (check_host(plugin.get_setting('host', str)) == True):
+        if os.path.isfile(crypto_key_dir + 'client.p12'):
+            game_controller = RequiredFeature('game-controller').request()
+            games = game_controller.get_games_as_simple_list()
+            selectionId = xbmcgui.Dialog().select('Select a game', games)
+            if selectionId != -1:
+                game_controller.launch_game(games[selectionId])
+            del game_controller
+        else:
+            xbmcgui.Dialog().ok('Pair key not found!', 'Please pair with the host before proceeding...')
+            open_settings()
+    else:
+        xbmcgui.Dialog().ok('Communication Error', 'The host is either not powered on or is asleep on the job. \nOtherwise, please troubleshoot a network issue.')
+
 
 @plugin.route('/games')
 def show_games():
