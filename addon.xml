@@ -10,7 +10,9 @@
     <platform>all</platform>
     <language>en</language>
     <summary lang="en_GB">Moonlight Launcher for Kodi</summary>
+    <summary lang="sk_SK">Moonlight spúšťač pre Kodi</summary>
     <description lang="en_GB">Luna is a Moonlight Launcher for Kodi. [CR]Use Luna to play games using Nvidia's GameStream protocol. [CR]Resume and quit sessions from Kodi [CR]ZeroTier Support - installation required via entware</description>
+    <description lang="sk_SK">Luna je spúšťačom Moonlight pre Kodi. [CR]Použite Luna na hranie hier s využitím GameStream protokolu od Nvidie. [CR]Obnovte a ukončite sedenia z Kodi [CR]Podpora pre ZeroTier - vyžaduje inštaláciu pomocou entware</description>
     <assets>
       <icon>icon.png</icon>
       <fanart>fanart.jpg</fanart>
