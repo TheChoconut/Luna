@@ -30,3 +30,7 @@ fabric.properties
 
 *.pyc
 .vscode/
+
+# launch script logfiles
+**/logfile
+**/logfile.old

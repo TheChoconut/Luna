@@ -84,8 +84,8 @@
                     <default>20</default>
                     <constraints>
                         <minimum>5</minimum>
-                        <step>1</step>
-                        <maximum>100</maximum>
+                        <step>10</step>
+                        <maximum>250</maximum>
                     </constraints>
                     <control type="slider" format="integer">
                         <popup>false</popup>

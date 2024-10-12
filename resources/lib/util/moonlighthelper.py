@@ -59,20 +59,21 @@ class MoonlightHelper:
         list_regex = r'\d+\.\s+([^\n]*)'
 
         try:
-            moonlightOut = subprocess.check_output(['moonlight', 'list'], cwd=binary_path, timeout=5, encoding='utf-8', start_new_session=True)
+            host = self.plugin.getSetting('host_addr')
+            moonlightOut = subprocess.check_output(['moonlight', 'list', host], cwd=binary_path, timeout=5, encoding='utf-8', start_new_session=True)
 
             if 'must pair' in moonlightOut:
                 return True
 
             return re.findall(list_regex, moonlightOut)
-        except:
+        except Exception:
             return False
 
     def quit_game(self):
         binary_path = self.config_helper.binary_path
         try:
             subprocess.run(['moonlight', 'quit'], cwd=binary_path, timeout=5, start_new_session=True)
-        except:
+        except Exception:
             return False
 
         return True
@@ -104,14 +105,29 @@ class MoonlightHelper:
             
             xbmc.audioSuspend()
             t0 = time.monotonic()
+            host = self.plugin.getSetting('host_addr')
             subprocess.run([scripts_path + 'prescript.sh', binary_path, codec], cwd=scripts_path, start_new_session=True)
-            launch_cmd = subprocess.Popen([scripts_path + 'launch.sh', game_id], cwd=binary_path, start_new_session=True)
+            launch_cmd = subprocess.Popen(
+                [scripts_path + 'launch.sh', game_id, host],
+                cwd=scripts_path,
+                start_new_session=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            # pipe launch script output to Kodi logger
+            # moonlight launcher output should be logged to a file to prevent chatty Kodi logs (see any launch.sh)
+            with launch_cmd.stdout:
+                for line in iter(launch_cmd.stdout.readline, b''):
+                    self.logger.info(f'{line}')
+            with launch_cmd.stderr:
+                for line in iter(launch_cmd.stderr.readline, b''):
+                    self.logger.error(f'{line}')
             launch_cmd.wait()
             subprocess.run([scripts_path + 'postscript.sh', binary_path], cwd=scripts_path, start_new_session=True)
 
         except Exception as e:
-            print("Failed to execute moonlight process.")
-            print(e)
+            self.logger.error("Failed to execute moonlight process.")
+            self.logger.error(str(e))
         finally:
             xbmc.audioResume()
             xbmc.executebuiltin("InhibitScreensaver(false)")
